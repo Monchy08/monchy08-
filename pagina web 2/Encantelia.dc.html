@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
 <script src="./image-slot.js"></script>
+<!-- PayPal Sandbox client-id (público, no es secreto). Cambiar por el Client ID Live antes de pasar a producción real. -->
+<script src="https://www.paypal.com/sdk/js?client-id=BAAN3GysAhdTdh80IcD1NMp514TGKWvs12AxgLr4UWEXnB73SMfI7QfiQmxkIa46F_j-1jy2oVPYmoGFcs&currency=USD&components=buttons&intent=capture"></script>
 </head>
 <body>
 <x-dc>
@@ -97,39 +99,209 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ paidConfirmation }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; background:rgba(58,30,40,0.5); z-index:90; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:#fff; border-radius:24px; max-width:480px; width:100%; padding:36px 30px; text-align:center; box-shadow:0 40px 80px rgba(58,30,40,0.35);">
+        <div style="font-size:44px; margin-bottom:14px;">✓</div>
+        <h3 style="font-family:'Playfair Display',serif; font-size:22px; color:#c2185b; margin:0 0 10px;">¡Pago confirmado!</h3>
+        <p style="font-size:14px; color:#6b4a58; margin:0 0 18px;">Gracias por tu compra. Te contactaremos para coordinar el envío.</p>
+        <div style="background:#fdf6f1; border-radius:14px; padding:16px 18px; text-align:left; font-size:13px; color:#4a2c3a; line-height:1.8; margin-bottom:20px;">
+          <div>Estado: <strong>{{ paidConfirmation.status }}</strong></div>
+          <div>Monto: <strong>${{ paidConfirmation.amount }} {{ paidConfirmation.currency }}</strong></div>
+          <div>ID de captura PayPal: <strong>{{ paidConfirmation.captureId }}</strong></div>
+        </div>
+        <button onClick="{{ closePaidConfirmation }}" style="background:#c2185b; color:#fff; border:none; padding:12px 28px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;">Cerrar</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ tshirtConfigOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeTshirtConfig }}" style="position:fixed; inset:0; background:rgba(58,30,40,0.5); z-index:80;"></div>
+    <div style="position:fixed; inset:0; z-index:81; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:#fff; border-radius:24px; max-width:640px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 40px 80px rgba(58,30,40,0.35); padding:26px 22px 28px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+          <span style="font-family:'Playfair Display',serif; font-weight:700; font-size:19px; color:#c2185b;">Configura tu T-Shirt</span>
+          <button onClick="{{ closeTshirtConfig }}" style="background:none; border:none; font-size:22px; color:#4a2c3a; cursor:pointer;">✕</button>
+        </div>
+        <p style="font-size:12.5px; font-weight:700; color:#b8863c; letter-spacing:1px; margin:0 0 20px;">PASO {{ tsStep }} DE 6</p>
+
+        <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Elige tu muñeca</h3>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(96px,1fr)); gap:12px; margin-bottom:8px;">
+            <sc-for list="{{ dolls }}" as="doll" hint-placeholder-count="3">
+              <button onClick="{{ selectDollHandler }}" data-doll-id="{{ doll.id }}" style="position:relative; padding:0; border-radius:16px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ doll.borderStyle }}">
+                <image-slot id="{{ doll.slotId }}" placeholder="{{ doll.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
+                <sc-if value="{{ doll.selected }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute; top:6px; right:6px; background:#c2185b; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;">✓</span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Elige la talla de la T-Shirt</h3>
+          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5">
+              <button onClick="{{ selectSizeHandler }}" data-size="{{ sz.value }}" style="min-width:56px; min-height:48px; padding:0 16px; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; background:#fff; color:#4a2c3a; {{ sz.borderStyle }}">{{ sz.value }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 6px;">Elige tus 3 looks incluidos</h3>
+          <p style="font-size:14px; font-weight:700; color:#c2185b; margin:0 0 14px;">Looks seleccionados: {{ tsIncludedCount }} de 3</p>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ looksIncludedView }}" as="look" hint-placeholder-count="8">
+              <button onClick="{{ toggleIncludedHandler }}" data-look-id="{{ look.id }}" style="position:relative; padding:0; border-radius:14px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ look.borderStyle }}">
+                <image-slot id="{{ look.slotId }}" placeholder="{{ look.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
+                <sc-if value="{{ look.selected }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute; top:5px; right:5px; background:#c2185b; color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">{{ look.order }}</span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep4 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 6px;">¿Quieres más looks?</h3>
+          <p style="font-size:14px; color:#6b4a58; margin:0 0 14px;">Agrega looks adicionales por <strong style="color:#c2185b;">$10.00 c/u</strong>. Seleccionados: {{ tsExtraCount }}</p>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ looksExtraView }}" as="look" hint-placeholder-count="5">
+              <button onClick="{{ toggleExtraHandler }}" data-look-id="{{ look.id }}" style="position:relative; padding:0; border-radius:14px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ look.borderStyle }}">
+                <image-slot id="{{ look.slotId }}" placeholder="{{ look.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
+                <sc-if value="{{ look.selected }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute; top:5px; right:5px; background:#c2185b; color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">+$10</span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep5 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 18px;">Cantidad</h3>
+          <div style="display:flex; align-items:center; gap:18px; margin-bottom:8px;">
+            <button onClick="{{ decQty }}" style="width:48px; height:48px; border-radius:50%; border:2px solid #c2185b; color:#c2185b; background:#fff; font-size:22px; font-weight:700; cursor:pointer;">−</button>
+            <span style="font-size:22px; font-weight:700; color:#4a2c3a; min-width:30px; text-align:center;">{{ tsQty }}</span>
+            <button onClick="{{ incQty }}" style="width:48px; height:48px; border-radius:50%; border:2px solid #c2185b; color:#c2185b; background:#fff; font-size:22px; font-weight:700; cursor:pointer;">+</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep6 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Resumen</h3>
+          <div style="background:#fdf6f1; border-radius:16px; padding:18px 20px; margin-bottom:8px; font-size:14px; color:#4a2c3a; line-height:1.8;">
+            <div>Muñeca: <strong>{{ tsDollLabel }}</strong></div>
+            <div>Talla: <strong>{{ tsSize }}</strong></div>
+            <div>Looks incluidos: <strong>{{ tsIncludedLabels }}</strong></div>
+            <sc-if value="{{ tsExtraLabels }}" hint-placeholder-val="{{ false }}">
+              <div>Looks adicionales: <strong>{{ tsExtraLabels }}</strong></div>
+            </sc-if>
+            <div>Cantidad: <strong>{{ tsQty }}</strong></div>
+          </div>
+          <div style="background:#fdf6f1; border-radius:16px; padding:18px 20px; margin-top:10px; font-size:14px; color:#4a2c3a; line-height:1.9;">
+            <div>Precio base T-Shirt + 3 looks: <strong>$43.00</strong></div>
+            <sc-if value="{{ tsExtraCount }}" hint-placeholder-val="{{ false }}">
+              <div>{{ tsExtraNounLabel }}: <strong>+${{ tsExtraAmountLabel }}</strong></div>
+            </sc-if>
+            <div>Precio unitario configurado: <strong>${{ tsUnitPrice }}</strong></div>
+            <div>Cantidad: <strong>{{ tsQty }}</strong></div>
+            <div style="margin-top:6px; padding-top:8px; border-top:1px solid #f2d9e2; font-size:16px; font-weight:700; color:#c2185b;">Subtotal: ${{ tsTotal }}</div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:22px; padding-top:18px; border-top:1px solid #f2d9e2;">
+          <sc-if value="{{ tsStep }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ goBack }}" style="visibility:{{ backVisibility }}; background:none; border:none; color:#8a6b78; font-weight:700; font-size:14px; cursor:pointer;">← Atrás</button>
+          </sc-if>
+          <sc-if value="{{ isStep6 }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ addConfiguredToCart }}" style="background:#c2185b; color:#fff; border:none; padding:14px 26px; border-radius:26px; font-weight:700; font-size:15px; cursor:pointer;">AGREGAR AL CARRITO — ${{ tsTotal }}</button>
+          </sc-if>
+          <sc-if value="{{ isNotStep6 }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ goNext }}" disabled="{{ nextDisabled }}" style="background:{{ nextBg }}; color:#fff; border:none; padding:14px 26px; border-radius:26px; font-weight:700; font-size:15px; cursor:pointer;">Continuar →</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ cartOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ toggleCart }}" style="position:fixed; inset:0; background:rgba(58,30,40,0.4); z-index:70;"></div>
     <div style="position:fixed; top:0; right:0; height:100%; width:min(420px, 92vw); background:#fff; z-index:71; box-shadow:-20px 0 50px rgba(58,30,40,0.25); display:flex; flex-direction:column;">
       <div style="display:flex; align-items:center; justify-content:space-between; padding:22px 26px; border-bottom:1px solid #f2d9e2;">
-        <h3 style="font-family:'Playfair Display', serif; font-size:20px; color:#c2185b; margin:0;">Mi cotización</h3>
+        <h3 style="font-family:'Playfair Display', serif; font-size:20px; color:#c2185b; margin:0;">{{ cartTitle }}</h3>
         <button onClick="{{ toggleCart }}" style="background:none; border:none; font-size:22px; color:#4a2c3a; cursor:pointer;">✕</button>
       </div>
       <div style="flex:1; overflow-y:auto; padding:20px 26px;">
         <sc-if value="{{ hasCartItems }}" hint-placeholder-val="{{ false }}">
           <sc-for list="{{ cart }}" as="item" hint-placeholder-count="2">
-            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid #f7e6ec;">
-              <span style="font-size:15px; color:#4a2c3a; font-weight:600;">{{ item.name }}</span>
-              <button onClick="{{ removeFromCart }}" data-item-id="{{ item.id }}" style="background:none; border:none; color:#b08a97; font-size:13px; cursor:pointer; text-decoration:underline;">quitar</button>
+            <div style="padding:14px 0; border-bottom:1px solid #f7e6ec;">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+                <span style="font-size:15px; color:#4a2c3a; font-weight:600;">{{ item.name }}</span>
+                <button onClick="{{ removeFromCart }}" data-item-id="{{ item.id }}" style="background:none; border:none; color:#b08a97; font-size:13px; cursor:pointer; text-decoration:underline; flex-shrink:0;">quitar</button>
+              </div>
+              <sc-if value="{{ item.priced }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px; color:#6b4a58; margin-top:6px; line-height:1.7;">
+                  <div>Muñeca: <strong>{{ item.dollLabel }}</strong></div>
+                  <div>Talla: <strong>{{ item.size }}</strong></div>
+                  <div>Looks incluidos: <strong>{{ item.includedLabels }}</strong></div>
+                  <sc-if value="{{ item.extraLabels }}" hint-placeholder-val="{{ false }}">
+                    <div>Looks adicionales: <strong>{{ item.extraLabels }}</strong></div>
+                  </sc-if>
+                  <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #f2d9e2;">Precio base T-Shirt + 3 looks: <strong>${{ item.basePriceLabel }}</strong></div>
+                  <sc-if value="{{ item.extraCount }}" hint-placeholder-val="{{ false }}">
+                    <div>{{ item.extraNounLabel }}: <strong>+${{ item.extraAmountLabel }}</strong></div>
+                  </sc-if>
+                  <div>Precio unitario configurado: <strong>${{ item.unitPriceLabel }}</strong></div>
+                  <div>Cantidad: <strong>{{ item.qty }}</strong></div>
+                </div>
+                <div style="font-size:15px; font-weight:700; color:#c2185b; margin-top:8px;">Subtotal: ${{ item.priceLabel }}</div>
+              </sc-if>
             </div>
           </sc-for>
         </sc-if>
-        <sc-if value="{{ hasCartItems }}" hint-placeholder-val="{{ true }}">
-          <p style="color:#8a6b78; font-size:15px; text-align:center; margin-top:40px;">Aún no agregaste productos. Explora nuestras creaciones y agrégalas aquí para pedir tu cotización.</p>
+        <sc-if value="{{ noCartItems }}" hint-placeholder-val="{{ true }}">
+          <p style="color:#8a6b78; font-size:15px; text-align:center; margin-top:40px;">Aún no agregaste productos. Explora nuestras creaciones y agrégalas aquí.</p>
         </sc-if>
-        <p style="font-size:13px; color:#b08a97; margin-top:20px; line-height:1.6;">Nuestros productos son hechos a mano y personalizados, así que primero te confirmamos el precio por correo o WhatsApp. Cuando lo tengas, escribe el monto aquí y paga con PayPal.</p>
+        <sc-if value="{{ onlyPriced }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:10px; padding-top:14px; border-top:2px solid #f2d9e2; display:flex; justify-content:space-between; font-weight:700; color:#4a2c3a; font-size:16px;">
+            <span>Total a pagar</span><span>${{ pricedTotalLabel }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ mixedCart }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:10px; padding-top:14px; border-top:2px solid #f2d9e2;">
+            <div style="display:flex; justify-content:space-between; font-weight:700; color:#4a2c3a; font-size:15px; margin-bottom:8px;">
+              <span>Subtotal precio fijo</span><span>${{ pricedTotalLabel }}</span>
+            </div>
+            <p style="font-size:12.5px; color:#b08a97; margin:0;">Los demás productos de tu carrito requieren cotización — te contactamos para confirmar ese precio por separado.</p>
+          </div>
+        </sc-if>
+        <sc-if value="{{ onlyQuote }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:13px; color:#b08a97; margin-top:20px; line-height:1.6;">Nuestros productos son hechos a mano y personalizados, así que primero te confirmamos el precio por correo o WhatsApp. Cuando lo tengas, escribe el monto aquí y paga con PayPal.</p>
+        </sc-if>
       </div>
       <div style="padding:22px 26px; border-top:1px solid #f2d9e2; background:#fdf6f1;">
-        <a href="mailto:encantelia.creations@gmail.com?subject=Cotización Encantelia&body=Hola, quiero cotizar: {{ payItemName }}" style="display:block; text-align:center; background:#fff; border:2px solid #c2185b; color:#c2185b; padding:12px; border-radius:24px; font-weight:700; font-size:14px; margin-bottom:14px;">Solicitar cotización por correo</a>
-        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" style="display:flex; flex-direction:column; gap:10px;">
-          <input type="hidden" name="cmd" value="_xclick">
-          <input type="hidden" name="business" value="encantelia.creations@gmail.com">
-          <input type="hidden" name="item_name" value="{{ payItemName }}">
-          <input type="hidden" name="currency_code" value="USD">
-          <input type="hidden" name="no_shipping" value="0">
-          <label style="font-size:13px; font-weight:700; color:#4a2c3a;">Monto acordado (USD)</label>
-          <input type="number" name="amount" step="0.01" min="1" required="" value="{{ payAmount }}" onChange="{{ setPayAmount }}" placeholder="ej. 25.00" style="padding:12px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif;">
-          <button type="submit" style="background:#0070ba; color:#fff; border:none; padding:13px; border-radius:24px; font-weight:700; font-size:15px; cursor:pointer;" style-hover="background:#005ea6;">Pagar con PayPal</button>
-        </form>
+        <sc-if value="{{ onlyPriced }}" hint-placeholder-val="{{ false }}">
+          <div ref="{{ paypalContainerRef }}" id="paypal-buttons-container"></div>
+          <sc-if value="{{ paypalError }}" hint-placeholder-val="{{ false }}">
+            <p style="color:#c2185b; font-size:12.5px; margin-top:10px; text-align:center;">{{ paypalError }}</p>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{ onlyQuote }}" hint-placeholder-val="{{ true }}">
+          <a href="mailto:encantelia.creations@gmail.com?subject=Cotización Encantelia&body=Hola, quiero cotizar: {{ payItemName }}" style="display:block; text-align:center; background:#fff; border:2px solid #c2185b; color:#c2185b; padding:12px; border-radius:24px; font-weight:700; font-size:14px; margin-bottom:14px;">Solicitar cotización por correo</a>
+          <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" style="display:flex; flex-direction:column; gap:10px;">
+            <input type="hidden" name="cmd" value="_xclick">
+            <input type="hidden" name="business" value="encantelia.creations@gmail.com">
+            <input type="hidden" name="item_name" value="{{ payItemName }}">
+            <input type="hidden" name="currency_code" value="USD">
+            <input type="hidden" name="no_shipping" value="0">
+            <label style="font-size:13px; font-weight:700; color:#4a2c3a;">Monto acordado (USD)</label>
+            <input type="number" name="amount" step="0.01" min="1" required="" value="{{ payAmount }}" onChange="{{ setPayAmount }}" placeholder="ej. 25.00" style="padding:12px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif;">
+            <button type="submit" style="background:#0070ba; color:#fff; border:none; padding:13px; border-radius:24px; font-weight:700; font-size:15px; cursor:pointer;" style-hover="background:#005ea6;">Pagar con PayPal</button>
+          </form>
+        </sc-if>
+        <sc-if value="{{ mixedCart }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:13px; color:#8a6b78; margin:0 0 12px; text-align:center;">Este carrito mezcla precio fijo y cotización \u2014 propuesta pendiente de tu aprobación.</p>
+        </sc-if>
       </div>
     </div>
   </sc-if>
@@ -185,7 +357,7 @@
         </div>
       </div>
       <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:26px;">
-        <a href="#tshirts" style="background:#c2185b; color:#fff; padding:14px 32px; border-radius:30px; font-weight:700; font-size:16px; letter-spacing:0.5px;" style-hover="background:#921249;">VER T-SHIRTS INTERCAMBIABLES</a>
+        <button onClick="{{ openTshirtConfig }}" style="background:#c2185b; color:#fff; border:none; padding:14px 32px; border-radius:30px; font-weight:700; font-size:16px; letter-spacing:0.5px; cursor:pointer;" style-hover="background:#921249;">VER T-SHIRTS INTERCAMBIABLES</button>
         <a href="#productos" style="border:2px solid #c2185b; color:#c2185b; padding:12px 30px; border-radius:30px; font-weight:700; font-size:15px;" style-hover="background:#fce4ec;">Ver todos los productos</a>
       </div>
     </div>
@@ -278,7 +450,8 @@
             <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Velcro</span>
             <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Alta calidad</span>
           </div>
-          <button onClick="{{ addCamisetas }}" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+                    <p style="font-size:15px; font-weight:700; color:#c2185b; margin:0 0 12px;">$43.00 <span style="font-size:13px; color:#8a6b78; font-weight:600;">· incluye 3 looks completos</span></p>
+          <button onClick="{{ openTshirtConfig }}" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">Configurar y comprar</button>
         </div>
       </div>
       <div style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25);">
@@ -466,8 +639,112 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { menuOpen: false, cartOpen: false, cart: [], payAmount: '' };
+  state = { menuOpen: false, cartOpen: false, cart: [], payAmount: '', tshirtConfigOpen: false, tsStep: 1, tsDoll: null, tsSize: null, tsIncluded: [], tsExtra: [], tsQty: 1, paidConfirmation: null, paypalError: '' };
   videoRef = React.createRef();
+  paypalContainerRef = React.createRef();
+  _paypalRendered = false;
+
+  componentDidUpdate() {
+    const s = this.state;
+    const hasPriced = s.cart.some(c => c.priced);
+    const hasQuote = s.cart.some(c => !c.priced);
+    const onlyPriced = hasPriced && !hasQuote;
+    if (s.cartOpen && onlyPriced && !s.paidConfirmation && window.paypal && this.paypalContainerRef.current && !this._paypalRendered) {
+      this.paypalContainerRef.current.innerHTML = '';
+      const firstItem = s.cart.find(c => c.priced);
+      window.paypal.Buttons({
+        createOrder: () => fetch('/.netlify/functions/paypal-create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doll: firstItem.dollLabel,
+            size: firstItem.size,
+            includedLooks: firstItem.includedLabels.split(', '),
+            extraLooks: firstItem.extraLabels ? firstItem.extraLabels.split(', ') : [],
+            qty: firstItem.qty,
+          }),
+        }).then(r => r.json()).then(d => {
+          if (!d.id) throw new Error(d.error || 'No se pudo crear la orden');
+          return d.id;
+        }).catch(err => { this.setState({ paypalError: err.message }); throw err; }),
+        onApprove: (data) => fetch('/.netlify/functions/paypal-capture-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: data.orderID }),
+        }).then(r => r.json()).then(res => {
+          if (!res.paid) { this.setState({ paypalError: 'El pago no se completó (estado: ' + res.status + ').' }); return; }
+          this.setState({ paidConfirmation: res, cart: [], cartOpen: false, payAmount: '' });
+        }),
+        onCancel: () => {},
+        onError: (err) => this.setState({ paypalError: 'Error de PayPal: ' + err }),
+      }).render(this.paypalContainerRef.current);
+      this._paypalRendered = true;
+    }
+    if (!onlyPriced || !s.cartOpen) this._paypalRendered = false;
+  }
+  dollsData = [
+    { id: 'doll1', slotId: 'cfg-doll-1', placeholder: 'Foto muñeca 1' },
+    { id: 'doll2', slotId: 'cfg-doll-2', placeholder: 'Foto muñeca 2' },
+    { id: 'doll3', slotId: 'cfg-doll-3', placeholder: 'Foto muñeca 3' },
+  ];
+  looksData = Array.from({ length: 8 }).map((_, i) => ({ id: 'look' + (i + 1), slotId: 'cfg-look-' + (i + 1), placeholder: 'Foto look ' + (i + 1) }));
+  sizesData = ['3T', '4T', '5/6', '7/8', '10/12'];
+
+  openTshirtConfig = () => this.setState({ tshirtConfigOpen: true, tsStep: 1, tsDoll: null, tsSize: null, tsIncluded: [], tsExtra: [], tsQty: 1 });
+  closeTshirtConfig = () => this.setState({ tshirtConfigOpen: false });
+  selectDollHandler = (e) => this.setState({ tsDoll: e.currentTarget.dataset.dollId });
+  selectSizeHandler = (e) => this.setState({ tsSize: e.currentTarget.dataset.size });
+  toggleIncludedHandler = (e) => {
+    const id = e.currentTarget.dataset.lookId;
+    this.setState(s => {
+      if (s.tsIncluded.includes(id)) return { tsIncluded: s.tsIncluded.filter(x => x !== id) };
+      if (s.tsIncluded.length >= 3) return {};
+      return { tsIncluded: [...s.tsIncluded, id] };
+    });
+  };
+  toggleExtraHandler = (e) => {
+    const id = e.currentTarget.dataset.lookId;
+    this.setState(s => s.tsExtra.includes(id) ? { tsExtra: s.tsExtra.filter(x => x !== id) } : { tsExtra: [...s.tsExtra, id] });
+  };
+  decQty = () => this.setState(s => ({ tsQty: Math.max(1, s.tsQty - 1) }));
+  incQty = () => this.setState(s => ({ tsQty: s.tsQty + 1 }));
+  goNext = () => this.setState(s => {
+    if (s.tsStep === 1 && !s.tsDoll) return {};
+    if (s.tsStep === 2 && !s.tsSize) return {};
+    if (s.tsStep === 3 && s.tsIncluded.length !== 3) return {};
+    return { tsStep: Math.min(6, s.tsStep + 1) };
+  });
+  goBack = () => this.setState(s => ({ tsStep: Math.max(1, s.tsStep - 1) }));
+
+  addConfiguredToCart = () => {
+    const s = this.state;
+    const lookLabel = (id) => 'L' + String(this.looksData.findIndex(l => l.id === id) + 1).padStart(2, '0');
+    const dollLabel = 'Muñeca ' + (this.dollsData.findIndex(d => d.id === s.tsDoll) + 1);
+    const includedLabels = s.tsIncluded.map(lookLabel).join(', ');
+    const extraLabels = s.tsExtra.map(lookLabel).join(', ');
+    const basePrice = 43;
+    const extraCount = s.tsExtra.length;
+    const extraAmount = extraCount * 10;
+    const extraNounLabel = extraCount + (extraCount === 1 ? ' look adicional' : ' looks adicionales');
+    const unitPrice = basePrice + extraAmount;
+    const total = unitPrice * s.tsQty;
+    const item = {
+      id: 'tshirt-' + Date.now(),
+      name: 'T-Shirt intercambiable',
+      priced: true,
+      dollLabel, size: s.tsSize, includedLabels, extraLabels,
+      basePriceLabel: basePrice.toFixed(2),
+      extraCount, extraAmountLabel: extraAmount.toFixed(2), extraNounLabel,
+      qty: s.tsQty,
+      unitPrice, unitPriceLabel: unitPrice.toFixed(2),
+      price: total, priceLabel: total.toFixed(2),
+    };
+    this.setState(prev => ({
+      cart: [...prev.cart, item],
+      cartOpen: true,
+      tshirtConfigOpen: false,
+    }));
+  };
 
   componentDidMount() {
     const v = this.videoRef.current;
@@ -493,8 +770,27 @@ class Component extends DCLogic {
   };
 
   renderVals() {
+    const s = this.state;
     const cart = this.state.cart;
     const itemNames = cart.map(c => c.name).join(', ') || 'Cotización Encantelia Creations';
+    const pricedTotal = cart.filter(c => c.priced).reduce((sum, c) => sum + c.price, 0);
+    const hasQuoteInCart = cart.some(c => !c.priced);
+    const hasPriced = cart.some(c => c.priced);
+    const onlyPriced = hasPriced && !hasQuoteInCart;
+    const onlyQuote = hasQuoteInCart && !hasPriced;
+    const mixedCart = hasPriced && hasQuoteInCart;
+    const dolls = this.dollsData.map(d => ({ ...d, selected: s.tsDoll === d.id, borderStyle: s.tsDoll === d.id ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;' }));
+    const sizes = this.sizesData.map(sz => ({ value: sz, borderStyle: s.tsSize === sz ? 'border:2px solid #c2185b; background:#fce4ec;' : 'border:2px solid #e9b7cb;' }));
+    const looksIncludedView = this.looksData.map(l => ({ ...l, order: s.tsIncluded.indexOf(l.id) + 1, selected: s.tsIncluded.includes(l.id), borderStyle: s.tsIncluded.includes(l.id) ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;' }));
+    const looksExtraView = this.looksData.filter(l => !s.tsIncluded.includes(l.id)).map(l => ({ ...l, selected: s.tsExtra.includes(l.id), borderStyle: s.tsExtra.includes(l.id) ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;' }));
+    const unitPrice = 43 + s.tsExtra.length * 10;
+    const tsTotal = (unitPrice * s.tsQty).toFixed(2);
+    const lookLabelFn = (id) => 'L' + String(this.looksData.findIndex(l => l.id === id) + 1).padStart(2, '0');
+    const tsIncludedLabels = s.tsIncluded.map(lookLabelFn).join(', ');
+    const tsExtraLabels = s.tsExtra.map(lookLabelFn).join(', ');
+    const tsExtraAmountLabel = (s.tsExtra.length * 10).toFixed(2);
+    const tsExtraNounLabel = s.tsExtra.length + (s.tsExtra.length === 1 ? ' look adicional' : ' looks adicionales');
+    const nextDisabled = (s.tsStep === 1 && !s.tsDoll) || (s.tsStep === 2 && !s.tsSize) || (s.tsStep === 3 && s.tsIncluded.length !== 3);
     return {
       menuOpen: this.state.menuOpen,
       toggleMenu: () => this.setState(s => ({ menuOpen: !s.menuOpen })),
@@ -506,9 +802,44 @@ class Component extends DCLogic {
       addToCart: this.addToCart,
       removeFromCart: this.removeFromCart,
       videoRef: this.videoRef,
+      pricedTotal,
+      pricedTotalLabel: pricedTotal.toFixed(2),
+      hasQuoteInCart,
+      noCartItems: cart.length === 0,
+      onlyPriced, onlyQuote, mixedCart,
+      cartTitle: onlyPriced ? 'Mi carrito' : (mixedCart ? 'Mi pedido' : 'Mi cotización'),
+      tshirtConfigOpen: s.tshirtConfigOpen,
+      openTshirtConfig: this.openTshirtConfig,
+      closeTshirtConfig: this.closeTshirtConfig,
+      tsStep: s.tsStep,
+      isStep1: s.tsStep === 1, isStep2: s.tsStep === 2, isStep3: s.tsStep === 3, isStep4: s.tsStep === 4, isStep5: s.tsStep === 5, isStep6: s.tsStep === 6,
+      isNotStep6: s.tsStep !== 6,
+      dolls, sizes, looksIncludedView, looksExtraView,
+      selectDollHandler: this.selectDollHandler,
+      selectSizeHandler: this.selectSizeHandler,
+      toggleIncludedHandler: this.toggleIncludedHandler,
+      toggleExtraHandler: this.toggleExtraHandler,
+      tsIncludedCount: s.tsIncluded.length,
+      tsExtraCount: s.tsExtra.length,
+      tsQty: s.tsQty,
+      decQty: this.decQty,
+      incQty: this.incQty,
+      goNext: this.goNext,
+      goBack: this.goBack,
+      backVisibility: s.tsStep > 1 ? 'visible' : 'hidden',
+      nextDisabled,
+      nextBg: nextDisabled ? '#e9b7cb' : '#c2185b',
+      tsUnitPrice: unitPrice.toFixed(2),
+      tsTotal,
+      addConfiguredToCart: this.addConfiguredToCart,
+      tsDollLabel: s.tsDoll ? ('Muñeca ' + (this.dollsData.findIndex(d => d.id === s.tsDoll) + 1)) : '',
+      tsSize: s.tsSize,
+      tsIncludedLabels, tsExtraLabels, tsExtraAmountLabel, tsExtraNounLabel,
+      paidConfirmation: s.paidConfirmation,
+      closePaidConfirmation: () => this.setState({ paidConfirmation: null }),
+      paypalError: s.paypalError,
       addVelas: () => this.addToCart({ id: 'velas', name: 'Vela Temática Personalizada' }),
       addToppers: () => this.addToCart({ id: 'toppers', name: 'Cake Topper Personalizado' }),
-      addCamisetas: () => this.addToCart({ id: 'camisetas', name: 'Camiseta Intercambiable' }),
       addSublimacion: () => this.addToCart({ id: 'sublimacion', name: 'Sublimación (tumbler/taza)' }),
       addBolso: () => this.addToCart({ id: 'bolso', name: 'Bolso sublimable con ropa intercambiable' }),
       payAmount: this.state.payAmount,
