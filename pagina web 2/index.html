@@ -701,6 +701,9 @@ class Component extends DCLogic {
         items: [{ item_id: 'tshirt-intercambiable', item_name: 'T-Shirt intercambiable', price: 43, quantity: 1 }],
       });
     }
+    if (window.fbq) {
+      window.fbq('track', 'ViewContent', { content_name: 'T-Shirt intercambiable', content_type: 'product', value: 43, currency: 'USD' });
+    }
   }
 
   // Lee el client_id y session_id reales de gtag.js (no un ID sintético) para que la compra
@@ -717,6 +720,16 @@ class Component extends DCLogic {
     } catch (e) { clearTimeout(timeout); resolve({ clientId: null, sessionId: null }); }
   });
 
+  // Lee _fbp/_fbc (cookies que pone el propio Meta Pixel) para mejorar el Event Match Quality de Purchase.
+  // No bloquea el checkout si no existen (visitante sin pixel cargado, bloqueador, etc.).
+  getMetaCookies = () => {
+    const get = (name) => {
+      const m = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
+      return m ? decodeURIComponent(m[1]) : null;
+    };
+    return { fbp: get('_fbp'), fbc: get('_fbc') };
+  };
+
   renderPaypalButtons = (el, retries) => {
     if (!el) return;
     if (el.dataset.rendered) return;
@@ -730,19 +743,24 @@ class Component extends DCLogic {
     if (!firstItem) return;
     el.dataset.rendered = '1';
     window.paypal.Buttons({
-      createOrder: () => this.getGAIdentifiers().then(({ clientId, sessionId }) => fetch('/.netlify/functions/paypal-create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          doll: firstItem.dollLabel,
-          size: firstItem.size,
-          includedLooks: firstItem.includedLabels.split(', '),
-          extraLooks: firstItem.extraLabels ? firstItem.extraLabels.split(', ') : [],
-          qty: firstItem.qty,
-          gaClientId: clientId,
-          gaSessionId: sessionId,
-        }),
-      })).then(r => r.json()).then(d => {
+      createOrder: () => this.getGAIdentifiers().then(({ clientId, sessionId }) => {
+        const { fbp, fbc } = this.getMetaCookies();
+        return fetch('/.netlify/functions/paypal-create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doll: firstItem.dollLabel,
+            size: firstItem.size,
+            includedLooks: firstItem.includedLabels.split(', '),
+            extraLooks: firstItem.extraLabels ? firstItem.extraLabels.split(', ') : [],
+            qty: firstItem.qty,
+            gaClientId: clientId,
+            gaSessionId: sessionId,
+            fbp,
+            fbc,
+          }),
+        });
+      }).then(r => r.json()).then(d => {
         if (!d.id) throw new Error(d.error || 'No se pudo crear la orden');
         return d.id;
       }).catch(err => { this.setState({ paypalError: err.message }); throw err; }),
@@ -775,6 +793,9 @@ class Component extends DCLogic {
           value: pricedTotal,
           items: s.cart.filter(c => c.priced).map(c => ({ item_name: c.name, price: c.unitPrice, quantity: c.qty })),
         });
+        if (window.fbq) {
+          window.fbq('track', 'InitiateCheckout', { value: pricedTotal, currency: 'USD' });
+        }
       }
     }
     if (!s.cartOpen) this._checkoutFired = false;
@@ -848,6 +869,9 @@ class Component extends DCLogic {
         items: [{ item_name: 'T-Shirt intercambiable', price: unitPrice, quantity: s.tsQty }],
       });
     }
+    if (window.fbq) {
+      window.fbq('track', 'AddToCart', { value: total, currency: 'USD', content_name: 'T-Shirt intercambiable', content_type: 'product' });
+    }
   };
 
   addToCart = (item) => {
@@ -856,6 +880,9 @@ class Component extends DCLogic {
       : { cart: [...s.cart, item], cartOpen: true });
     if (window.gtag) {
       window.gtag('event', 'add_to_cart', { currency: 'USD', items: [{ item_id: item.id, item_name: item.name, quantity: 1 }] });
+    }
+    if (window.fbq) {
+      window.fbq('track', 'AddToCart', { content_name: item.name, content_type: 'product', currency: 'USD' });
     }
   };
 
