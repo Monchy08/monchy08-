@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '3146416538881167');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WVD43837VY"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -685,6 +703,20 @@ class Component extends DCLogic {
     }
   }
 
+  // Lee el client_id y session_id reales de gtag.js (no un ID sintético) para que la compra
+  // quede atribuida a la sesión/tráfico original en GA4. Fallback a null si gtag no responde
+  // a tiempo (bloqueador de anuncios, SDK no cargó) — el backend usa un ID sintético en ese caso.
+  getGAIdentifiers = () => new Promise((resolve) => {
+    if (!window.gtag) return resolve({ clientId: null, sessionId: null });
+    let clientId = null, sessionId = null, done = 0;
+    const finish = () => { if (++done === 2) resolve({ clientId, sessionId }); };
+    const timeout = setTimeout(() => resolve({ clientId, sessionId }), 800);
+    try {
+      window.gtag('get', 'G-WVD43837VY', 'client_id', (id) => { clientId = id || null; finish(); });
+      window.gtag('get', 'G-WVD43837VY', 'session_id', (id) => { sessionId = id || null; finish(); });
+    } catch (e) { clearTimeout(timeout); resolve({ clientId: null, sessionId: null }); }
+  });
+
   renderPaypalButtons = (el, retries) => {
     if (!el) return;
     if (el.dataset.rendered) return;
@@ -698,7 +730,7 @@ class Component extends DCLogic {
     if (!firstItem) return;
     el.dataset.rendered = '1';
     window.paypal.Buttons({
-      createOrder: () => fetch('/.netlify/functions/paypal-create-order', {
+      createOrder: () => this.getGAIdentifiers().then(({ clientId, sessionId }) => fetch('/.netlify/functions/paypal-create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -707,8 +739,10 @@ class Component extends DCLogic {
           includedLooks: firstItem.includedLabels.split(', '),
           extraLooks: firstItem.extraLabels ? firstItem.extraLabels.split(', ') : [],
           qty: firstItem.qty,
+          gaClientId: clientId,
+          gaSessionId: sessionId,
         }),
-      }).then(r => r.json()).then(d => {
+      })).then(r => r.json()).then(d => {
         if (!d.id) throw new Error(d.error || 'No se pudo crear la orden');
         return d.id;
       }).catch(err => { this.setState({ paypalError: err.message }); throw err; }),
