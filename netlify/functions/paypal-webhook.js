@@ -64,6 +64,47 @@ async function sendPurchaseToGA4({ captureId, value, currency, doll, size, qty, 
   }).catch(() => {});
 }
 
+// Recupera fbp/fbc guardados al crear la orden. Nunca debe bloquear el procesamiento del webhook:
+// timeout corto + catch silencioso — si falla, Purchase se envía igual sin esos campos.
+async function fetchAttribution(paypalOrderId) {
+  if (!process.env.SHEETS_WEBHOOK_URL || !paypalOrderId) return { fbp: null, fbc: null };
+  try {
+    const url = `${process.env.SHEETS_WEBHOOK_URL}?action=get_attribution&paypalOrderId=${encodeURIComponent(paypalOrderId)}&secret=${encodeURIComponent(process.env.SHEETS_SECRET || '')}`;
+    const res = await Promise.race([
+      fetch(url),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200)),
+    ]);
+    const data = await res.json();
+    return { fbp: data.fbp || null, fbc: data.fbc || null };
+  } catch (e) {
+    return { fbp: null, fbc: null };
+  }
+}
+
+// Envía Purchase a Meta Conversions API — solo tras verificar la firma del webhook y confirmar
+// PAYMENT.CAPTURE.COMPLETED. Nunca se dispara Purchase desde el navegador.
+async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc }) {
+  if (!process.env.META_PIXEL_ID || !process.env.META_CAPI_ACCESS_TOKEN) return;
+  const apiVersion = process.env.META_GRAPH_API_VERSION || 'v25.0';
+  const userData = {};
+  if (fbp) userData.fbp = fbp;
+  if (fbc) userData.fbc = fbc;
+  await fetch(`https://graph.facebook.com/${apiVersion}/${process.env.META_PIXEL_ID}/events?access_token=${process.env.META_CAPI_ACCESS_TOKEN}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      data: [{
+        event_name: 'Purchase',
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: captureId,
+        action_source: 'website',
+        user_data: userData,
+        custom_data: { value: Number(value), currency },
+      }],
+    }),
+  }).catch(() => {});
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
   try {
@@ -136,6 +177,15 @@ exports.handler = async (event) => {
         qty: config.qty,
         clientId: config.clientId,
         sessionId: config.sessionId,
+      });
+      const paypalOrderId = resource.supplementary_data?.related_ids?.order_id || '';
+      const { fbp, fbc } = await fetchAttribution(paypalOrderId);
+      await sendPurchaseToMeta({
+        captureId: resource.id,
+        value: resource.amount?.value || 0,
+        currency: resource.amount?.currency_code || 'USD',
+        fbp,
+        fbc,
       });
     }
 

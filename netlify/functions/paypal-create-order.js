@@ -14,11 +14,27 @@ async function getAccessToken() {
   return data.access_token;
 }
 
+// Guarda fbp/fbc en la pestaña "Atribución temporal" del Sheet, indexado por el PayPal Order ID.
+// Nunca debe bloquear ni fallar la creación de la orden: timeout corto + catch silencioso.
+async function saveAttribution(paypalOrderId, fbp, fbc) {
+  if (!process.env.SHEETS_WEBHOOK_URL || (!fbp && !fbc)) return;
+  try {
+    await Promise.race([
+      fetch(process.env.SHEETS_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: process.env.SHEETS_SECRET, action: 'save_attribution', paypalOrderId, fbp: fbp || '', fbc: fbc || '' }),
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200)),
+    ]);
+  } catch (e) { /* nunca debe romper la creación de la orden */ }
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
   try {
     const body = JSON.parse(event.body || '{}');
-    const { doll, size, includedLooks, extraLooks, qty, gaClientId, gaSessionId } = body;
+    const { doll, size, includedLooks, extraLooks, qty, gaClientId, gaSessionId, fbp, fbc } = body;
 
     if (!doll || !size || !Array.isArray(includedLooks) || includedLooks.length !== 3 || !Array.isArray(extraLooks) || !qty || qty < 1) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Configuración de pedido inválida' }) };
@@ -61,6 +77,7 @@ exports.handler = async (event) => {
     if (!res.ok) {
       return { statusCode: 500, body: JSON.stringify({ error: 'No se pudo crear la orden de PayPal', details: order }) };
     }
+    await saveAttribution(order.id, fbp, fbc);
     return { statusCode: 200, body: JSON.stringify({ id: order.id, total: total.toFixed(2) }) };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
