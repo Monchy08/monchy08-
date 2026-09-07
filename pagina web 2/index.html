@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./image-slot.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <template id="__bundler_thumbnail" data-bg-color="#fce4ec">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="90" fill="#fdf6f1" stroke="#c2185b" stroke-width="4"/>
+      <text x="100" y="112" font-family="serif" font-size="70" font-weight="700" fill="#c2185b" text-anchor="middle">E</text>
+    </svg>
+  </template>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #fdf6f1; }
+    a { color: #c2185b; text-decoration: none; }
+    a:hover { color: #921249; }
+    ::selection { background: #f7c9d8; }
+    @media (max-width: 900px) {
+      .desktop-nav { display: none !important; }
+      .mobile-toggle { display: flex !important; }
+    }
+    @media (max-width: 760px) {
+      header { padding: 12px 5vw !important; }
+      .sec-pad { padding-top: 56px !important; padding-bottom: 56px !important; }
+      .hero-h1 { font-size: 32px !important; }
+      .sec-h2 { font-size: 28px !important; }
+      .flagship-h2 { font-size: 26px !important; }
+      .flagship-grid { grid-template-columns: 1fr !important; height: auto !important; }
+      .flagship-media { height: 320px !important; }
+      .about-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+      .about-badges { grid-template-columns: 1fr !important; }
+      .products-grid { grid-template-columns: 1fr !important; }
+      .card-split { grid-template-columns: 1fr !important; }
+      .card-split-media { grid-template-columns: repeat(3, 1fr) !important; height: 220px !important; }
+      .card-media-tall { height: 220px !important; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      #velas-numericas .products-grid { grid-template-columns: 1fr !important; }
+      .pricing-grid { grid-template-columns: 1fr !important; }
+      .testimonials-grid { grid-template-columns: 1fr !important; }
+      .bolso-media { height: 300px !important; }
+      .hero-sub { font-size: 16px !important; }
+      .hero-cats { font-size: 12.5px !important; margin-bottom: 20px !important; }
+      .flagship-tag { font-size: 16px !important; }
+    }
+  </style>
+</helmet>
+
+<div style="font-family: 'Quicksand', sans-serif; color: #4a2c3a; background: #fdf6f1; overflow-x: hidden;">
+
+  <!-- NAV -->
+  <header style="position: sticky; top: 0; z-index: 50; background: rgba(253,246,241,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #f2d9e2; display: flex; align-items: center; justify-content: space-between; padding: 14px 5vw;">
+    <a href="#inicio" style="display: flex; align-items: center; gap: 12px;">
+      <img src="assets/logo.png" alt="Encantelia Creations" style="width: 52px; height: 52px; object-fit: contain;">
+      <span style="font-family: 'Playfair Display', serif; font-weight: 700; font-size: 22px; color: #c2185b; letter-spacing: 0.3px;">Encantelia <span style="color:#b8863c; font-size:13px; letter-spacing:3px; font-weight:600; display:block; font-family:'Quicksand',sans-serif; margin-top:-2px;">CREATIONS</span></span>
+    </a>
+    <nav style="display: flex; align-items: center; gap: 28px;" class="desktop-nav">
+      <a href="#nosotros" style="color:#4a2c3a; font-weight:600; font-size:15px;">Nosotros</a>
+      <a href="#productos" style="color:#4a2c3a; font-weight:600; font-size:15px;">Productos</a>
+      <a href="#galeria" style="color:#4a2c3a; font-weight:600; font-size:15px;">Galería</a>
+      <a href="#precios" style="color:#4a2c3a; font-weight:600; font-size:15px;">Precios</a>
+      <a href="#testimonios" style="color:#4a2c3a; font-weight:600; font-size:15px;">Testimonios</a>
+      <a href="#productos" style="background: #c2185b; color: #fff; padding: 10px 22px; border-radius: 30px; font-weight: 700; font-size: 14px; letter-spacing:0.5px;" style-hover="background:#921249; color:#fff;">COMPRAR</a>
+      <button onClick="{{ toggleCart }}" style="position:relative; background:#fce4ec; border:none; width:42px; height:42px; border-radius:50%; font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center;" aria-label="Carrito">
+        🛍
+        <sc-if value="{{ hasCartItems }}" hint-placeholder-val="{{ false }}">
+          <span style="position:absolute; top:-4px; right:-4px; background:#c2185b; color:#fff; font-size:11px; font-weight:700; width:19px; height:19px; border-radius:50%; display:flex; align-items:center; justify-content:center;">{{ cartCount }}</span>
+        </sc-if>
+      </button>
+    </nav>
+    <div style="display:none; align-items:center; gap:14px;" class="mobile-toggle">
+      <button onClick="{{ toggleCart }}" style="position:relative; background:#fce4ec; border:none; width:38px; height:38px; border-radius:50%; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center;" aria-label="Carrito">
+        🛍
+        <sc-if value="{{ hasCartItems }}" hint-placeholder-val="{{ false }}">
+          <span style="position:absolute; top:-4px; right:-4px; background:#c2185b; color:#fff; font-size:10px; font-weight:700; width:17px; height:17px; border-radius:50%; display:flex; align-items:center; justify-content:center;">{{ cartCount }}</span>
+        </sc-if>
+      </button>
+      <button onClick="{{ toggleMenu }}" style="background:none; border:none; font-size:28px; color:#c2185b; cursor:pointer;">☰</button>
+    </div>
+  </header>
+
+  <sc-if value="{{ menuOpen }}">
+    <div style="position: fixed; inset: 0; z-index: 60; background: #fdf6f1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;">
+      <button onClick="{{ toggleMenu }}" style="position:absolute; top:20px; right:24px; background:none; border:none; font-size:30px; color:#c2185b;">✕</button>
+      <a href="#nosotros" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Nosotros</a>
+      <a href="#productos" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Productos</a>
+      <a href="#galeria" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Galería</a>
+      <a href="#precios" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Precios</a>
+      <a href="#testimonios" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Testimonios</a>
+      <a href="#productos" onClick="{{ toggleMenu }}" style="background:#c2185b; color:#fff; padding:12px 32px; border-radius:30px; font-weight:700; font-size:18px; letter-spacing:0.5px;">COMPRAR</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ cartOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ toggleCart }}" style="position:fixed; inset:0; background:rgba(58,30,40,0.4); z-index:70;"></div>
+    <div style="position:fixed; top:0; right:0; height:100%; width:min(420px, 92vw); background:#fff; z-index:71; box-shadow:-20px 0 50px rgba(58,30,40,0.25); display:flex; flex-direction:column;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:22px 26px; border-bottom:1px solid #f2d9e2;">
+        <h3 style="font-family:'Playfair Display', serif; font-size:20px; color:#c2185b; margin:0;">Mi cotización</h3>
+        <button onClick="{{ toggleCart }}" style="background:none; border:none; font-size:22px; color:#4a2c3a; cursor:pointer;">✕</button>
+      </div>
+      <div style="flex:1; overflow-y:auto; padding:20px 26px;">
+        <sc-if value="{{ hasCartItems }}" hint-placeholder-val="{{ false }}">
+          <sc-for list="{{ cart }}" as="item" hint-placeholder-count="2">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid #f7e6ec;">
+              <span style="font-size:15px; color:#4a2c3a; font-weight:600;">{{ item.name }}</span>
+              <button onClick="{{ removeFromCart }}" data-item-id="{{ item.id }}" style="background:none; border:none; color:#b08a97; font-size:13px; cursor:pointer; text-decoration:underline;">quitar</button>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ hasCartItems }}" hint-placeholder-val="{{ true }}">
+          <p style="color:#8a6b78; font-size:15px; text-align:center; margin-top:40px;">Aún no agregaste productos. Explora nuestras creaciones y agrégalas aquí para pedir tu cotización.</p>
+        </sc-if>
+        <p style="font-size:13px; color:#b08a97; margin-top:20px; line-height:1.6;">Nuestros productos son hechos a mano y personalizados, así que primero te confirmamos el precio por correo o WhatsApp. Cuando lo tengas, escribe el monto aquí y paga con PayPal.</p>
+      </div>
+      <div style="padding:22px 26px; border-top:1px solid #f2d9e2; background:#fdf6f1;">
+        <a href="mailto:encantelia.creations@gmail.com?subject=Cotización Encantelia&body=Hola, quiero cotizar: {{ payItemName }}" style="display:block; text-align:center; background:#fff; border:2px solid #c2185b; color:#c2185b; padding:12px; border-radius:24px; font-weight:700; font-size:14px; margin-bottom:14px;">Solicitar cotización por correo</a>
+        <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" style="display:flex; flex-direction:column; gap:10px;">
+          <input type="hidden" name="cmd" value="_xclick">
+          <input type="hidden" name="business" value="encantelia.creations@gmail.com">
+          <input type="hidden" name="item_name" value="{{ payItemName }}">
+          <input type="hidden" name="currency_code" value="USD">
+          <input type="hidden" name="no_shipping" value="0">
+          <label style="font-size:13px; font-weight:700; color:#4a2c3a;">Monto acordado (USD)</label>
+          <input type="number" name="amount" step="0.01" min="1" required="" value="{{ payAmount }}" onChange="{{ setPayAmount }}" placeholder="ej. 25.00" style="padding:12px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif;">
+          <button type="submit" style="background:#0070ba; color:#fff; border:none; padding:13px; border-radius:24px; font-weight:700; font-size:15px; cursor:pointer;" style-hover="background:#005ea6;">Pagar con PayPal</button>
+        </form>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- HERO -->
+  <section id="inicio" class="sec-pad" style="position: relative; padding: 40px 5vw 56px; background: radial-gradient(circle at 85% 10%, #fce4ec 0%, #fdf6f1 55%);">
+    <div style="max-width:1050px; margin:0 auto 26px;">
+      <img src="assets/hero-banner.png" alt="Encantelia Creations" class="hero-banner-img" style="width:100%; height:auto; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); display:block;">
+    </div>
+    <div style="max-width:720px; margin:0 auto; text-align:center;">
+      <h1 class="hero-h1" style="font-family:'Playfair Display', serif; font-size:52px; line-height:1.1; color:#c2185b; margin:0 0 16px; font-weight:700;">Detalles que encantan, momentos que perduran.</h1>
+      <p class="hero-sub" style="font-size:19px; line-height:1.5; color:#4a2c3a; font-weight:600; margin:0 auto 10px; max-width:560px;">Regalos personalizados que convierten momentos especiales en recuerdos únicos.</p>
+      <p class="hero-cats" style="font-size:14px; line-height:1.6; color:#8a6b78; margin:0 auto 26px; max-width:560px; font-weight:600;">T-Shirts intercambiables para niñas · Velas temáticas · Cake toppers · Sublimación personalizada</p>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center;">
+        <a href="#productos" style="background:#c2185b; color:#fff; padding:15px 32px; border-radius:30px; font-weight:700; font-size:16px; letter-spacing:0.5px;" style-hover="background:#921249;">VER PRODUCTOS</a>
+        <a href="#contacto" style="border:2px solid #c2185b; color:#c2185b; padding:13px 30px; border-radius:30px; font-weight:700; font-size:16px; letter-spacing:0.5px;" style-hover="background:#fce4ec;">PERSONALIZA EL TUYO</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTO PRINCIPAL -->
+  <section class="sec-pad" style="padding: 0 5vw 90px; background: radial-gradient(circle at 85% 10%, #fce4ec 0%, #fdf6f1 55%);">
+    <div style="max-width:1200px; margin:0 auto; text-align:center;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">NUESTRO PRODUCTO ESTRELLA</p>
+      <h2 class="flagship-h2" style="font-family:'Playfair Display', serif; font-size:38px; color:#4a2c3a; margin:0 0 12px; font-weight:700;">T-Shirts con ropa y pelo intercambiables para niñas</h2>
+      <p class="flagship-tag" style="font-size:18px; font-weight:700; color:#c2185b; margin:0 0 10px;">Una T-Shirt. Muchos estilos. Mucha imaginación.</p>
+      <p style="font-size:16px; line-height:1.6; color:#6b4a58; max-width:640px; margin:0 auto 28px;">Tu niña puede cambiar el cabello y la ropa de su muñeca para crear diferentes looks una y otra vez.</p>
+      <div class="flagship-grid" style="display:grid; grid-template-columns: 1.4fr 1fr; gap:24px; align-items:stretch; height:560px; overflow:hidden;">
+        <div class="flagship-media" style="width:100%; height:100%; min-height:0; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+          <img src="assets/tshirt-collection-banner.jpg" alt="Colección T-Shirts con ropa y pelo intercambiables para niñas" style="width:100%; height:100%; object-fit:contain; display:block;">
+        </div>
+        <div class="flagship-media" style="width:100%; height:100%; min-height:0; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); background:#fce4ec; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+          <video src="assets/doll-video.mp4" autoplay="true" loop="true" muted="true" playsInline="true" ref="{{ videoRef }}" style="height:100%; width:auto; max-width:100%; object-fit:contain; display:block;"></video>
+        </div>
+      </div>
+      <ul class="flagship-checklist" style="list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 24px; margin:28px 0 0; padding:0;">
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Ropa intercambiable</li>
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Cabello intercambiable</li>
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Diseños exclusivos</li>
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Sets adicionales disponibles</li>
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Accesorios hechos a mano</li>
+      </ul>
+      <div style="max-width:560px; margin:28px auto 0; background:#fff; border-radius:20px; padding:26px 28px; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25); text-align:left;">
+        <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+          <span style="font-family:'Playfair Display', serif; font-size:34px; font-weight:700; color:#c2185b;">$43.00</span>
+          <span style="font-size:15px; font-weight:700; color:#4a2c3a;">Incluye T-Shirt + 3 looks completos</span>
+        </div>
+        <p style="font-size:15px; color:#6b4a58; margin:0 0 4px;">✓ 1 T-Shirt con la muñeca sublimada</p>
+        <p style="font-size:15px; color:#6b4a58; margin:0 0 18px;">✓ 3 looks completos con ropa + cabello intercambiables (el look inicial + 2 sets adicionales)</p>
+        <div style="border-top:1px solid #f2d9e2; padding-top:16px;">
+          <p style="font-size:16px; font-weight:700; color:#4a2c3a; margin:0 0 4px;">¿Quieres más looks?</p>
+          <p style="font-size:14px; color:#6b4a58; margin:0;">Agrega sets adicionales de ropa + cabello por <strong style="color:#c2185b;">$10.00 c/u</strong>.</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:26px;">
+        <a href="#tshirts" style="background:#c2185b; color:#fff; padding:14px 32px; border-radius:30px; font-weight:700; font-size:16px; letter-spacing:0.5px;" style-hover="background:#921249;">VER T-SHIRTS INTERCAMBIABLES</a>
+        <a href="#productos" style="border:2px solid #c2185b; color:#c2185b; padding:12px 30px; border-radius:30px; font-weight:700; font-size:15px;" style-hover="background:#fce4ec;">Ver todos los productos</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOBRE NOSOTROS -->
+  <section id="nosotros" class="sec-pad" style="padding: 100px 5vw; background:#fff; scroll-margin-top:80px;">
+    <div class="about-grid" style="display:grid; grid-template-columns: 0.8fr 1.2fr; gap:64px; align-items:center; max-width:1200px; margin:0 auto;">
+      <div style="display:flex; justify-content:center;">
+        <img src="assets/logo.png" alt="Encantelia Creations" style="width:100%; max-width:340px;">
+      </div>
+      <div>
+        <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">SOBRE NOSOTROS</p>
+        <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0 0 22px; font-weight:700;">Hecho con amor, para crear recuerdos que encantan.</h2>
+        <p style="font-size:17px; line-height:1.75; color:#6b4a58; margin:0 0 18px;">En Encantelia Creations diseñamos y creamos a mano velas temáticas, cake toppers y prendas personalizables, pensadas para hacer únicos los momentos que más importan. Cada pieza se elabora con materiales premium y muchísimo cariño, para pequeños y grandes soñadores por igual.</p>
+        <p style="font-size:17px; line-height:1.75; color:#6b4a58; margin:0 0 30px;">Trabajamos con clientes locales e internacionales &mdash; enviamos nuestras creaciones a Estados Unidos y a todo el mundo.</p>
+        <div class="about-badges" style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-size:22px;">✦</span>
+            <div><strong style="display:block; font-size:15px; color:#4a2c3a;">Detalles únicos</strong><span style="font-size:14px; color:#8a6b78;">Para cada ocasión</span></div>
+          </div>
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-size:22px;">✦</span>
+            <div><strong style="display:block; font-size:15px; color:#4a2c3a;">Calidad artesanal</strong><span style="font-size:14px; color:#8a6b78;">Materiales premium</span></div>
+          </div>
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-size:22px;">✦</span>
+            <div><strong style="display:block; font-size:15px; color:#4a2c3a;">Hecho con amor</strong><span style="font-size:14px; color:#8a6b78;">Para grandes y pequeños</span></div>
+          </div>
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-size:22px;">✦</span>
+            <div><strong style="display:block; font-size:15px; color:#4a2c3a;">Envíos globales</strong><span style="font-size:14px; color:#8a6b78;">USA y el mundo</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTOS -->
+  <section id="productos" class="sec-pad" style="padding: 100px 5vw; background: linear-gradient(180deg, #fdf6f1 0%, #fce4ec 100%); scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 60px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">NUESTRAS CREACIONES</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0; font-weight:700;">Productos &amp; Servicios</h2>
+    </div>
+    <div class="products-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 32px; max-width:1100px; margin:0 auto;">
+      <div class="card-split" style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25); grid-column: span 2; display:grid; grid-template-columns: 1fr 1.1fr;">
+        <div style="padding:28px 30px; display:flex; flex-direction:column; justify-content:center;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">Velas Temáticas</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Diseños encantadores y personalizados para cumpleaños y ocasiones especiales &mdash; princesas, personajes favoritos y más.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Personalizadas</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Diseños únicos</span>
+          </div>
+          <button onClick="{{ addVelas }}" style="align-self:flex-start; background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+        </div>
+        <div class="card-split-media" style="display:grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap:3px; padding:3px;">
+          <img src="assets/vela-1.jpg" alt="Vela temática Cenicienta" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/vela-2.jpg" alt="Vela temática Alicia" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/vela-3.jpg" alt="Vela temática Paw Patrol" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/vela-4.jpg" alt="Vela temática Winnie Pooh" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+        </div>
+      </div>
+      <div class="card-split" style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25); grid-column: span 2; display:grid; grid-template-columns: 1.1fr 1fr;">
+        <div class="card-split-media" style="display:grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap:3px; padding:3px;">
+          <img src="assets/topper-1.jpg" alt="Cake topper bautizo" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-2.jpg" alt="Cake topper mariachi" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-3.jpg" alt="Cake topper novios" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-4.jpg" alt="Cake topper boda" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-5.jpg" alt="Cake topper familia" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-6.jpg" alt="Cake topper quinceañera" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+        </div>
+        <div style="padding:28px 30px; display:flex; flex-direction:column; justify-content:center;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">Cake Toppers</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Personajes exclusivos hechos con amor, el toque perfecto para tu pastel &mdash; bodas, bautizos, comuniones y más.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">A la medida</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Hecho a mano</span>
+          </div>
+          <button onClick="{{ addToppers }}" style="align-self:flex-start; margin-top:16px; background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+        </div>
+      </div>
+      <div id="tshirts" class="card-split" style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25); grid-column: span 2; display:grid; grid-template-columns: 1fr 1.3fr; scroll-margin-top:96px;">
+        <div class="card-media-tall" style="padding:3px;">
+          <img src="assets/tshirt-collection-banner.jpg" alt="Colección T-Shirts con ropa intercambiable para niñas" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:8px;">
+        </div>
+        <div style="padding:28px 30px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">T-Shirts con ropa y pelo intercambiables para niñas</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Camisetas sublimadas con muñeca y accesorios de ropa intercambiables con velcro para niñas.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Velcro</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Alta calidad</span>
+          </div>
+          <button onClick="{{ addCamisetas }}" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+        </div>
+      </div>
+      <div style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25);">
+        <div class="card-media-tall" style="width:100%; height:260px; box-sizing:border-box; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de tazas, tumblers y más</div>
+        <div style="padding:28px 30px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">Sublimación &amp; Más</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Tumblers, tazas y otros artículos personalizados por sublimación, perfectos para regalar.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Tumblers</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Tazas</span>
+          </div>
+          <button onClick="{{ addSublimacion }}" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+        </div>
+      </div>
+      <div style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25);">
+        <div class="bolso-media" style="width:100%; height:420px; background:#fdf6f1; overflow:hidden;">
+          <img src="assets/bolso.jpg" alt="Bolso sublimable con ropa intercambiable" style="width:100%; height:100%; object-fit:contain; display:block; transition:transform 0.4s ease; cursor:zoom-in;" style-hover="transform:scale(1.6);">
+        </div>
+        <div style="padding:28px 30px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">Bolso Sublimable con Ropa Intercambiable</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Bolso de tela sublimado con muñeca y accesorios de ropa intercambiables, ideal para regalar o coleccionar.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Sublimado</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Personalizable</span>
+          </div>
+          <button onClick="{{ addBolso }}" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VELAS NUMERICAS -->
+  <section id="velas-numericas" class="sec-pad" style="padding: 100px 5vw; background:#fff; scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 20px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">VELAS TEMÁTICAS</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0 0 16px; font-weight:700;">Velas Numéricas Personalizadas</h2>
+      <p style="font-size:15px; color:#8a6b78; line-height:1.6;">Cada precio corresponde a UNA (1) vela personalizada. Las fotos muestran diseños anteriores como referencia, no la totalidad de velas mostradas.</p>
+    </div>
+    <div class="products-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width:1100px; margin:0 auto;">
+      <a href="./vela-princesa-invierno.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-princesa-invierno" src="assets/vela-princesa-invierno.webp" placeholder="Foto: princesa invernal" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Princesa invernal</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$22 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-personaje-lunares.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-personaje-lunares" src="assets/vela-personaje-lunares.webp" placeholder="Foto: personaje con lunares" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Personaje con lunares</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$18 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-heroe-cuento.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-heroe-cuento" src="assets/vela-heroe-cuento.webp" placeholder="Foto: héroe o cuento" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Héroe o cuento</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$18 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-princesa-rosas.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-princesa-rosas" src="assets/vela-princesa-rosas.webp" placeholder="Foto: princesa con rosas" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Princesa con rosas</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$18 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-sirena.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-sirena" src="assets/vela-sirena.webp" placeholder="Foto: sirena" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Sirena</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$25 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-sirena-rosada.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-sirena-rosada" src="assets/vela-sirena-rosada.webp" placeholder="Foto: sirena cabello rosado" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Sirena cabello rosado</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$25 · Personalizar →</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- GALERIA -->
+  <section id="galeria" class="sec-pad" style="padding: 100px 5vw; background:#fff; scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 56px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">GALERÍA</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0; font-weight:700;">Creaciones que encantan</h2>
+    </div>
+    <div class="gallery-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; max-width:1200px; margin:0 auto;">
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+    </div>
+  </section>
+
+  <!-- PRECIOS -->
+  <section id="precios" class="sec-pad" style="padding:100px 5vw; background:linear-gradient(180deg, #fce4ec 0%, #fdf6f1 100%); scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 56px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">PRECIOS</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0 0 16px; font-weight:700;">Cotizaciones a tu medida</h2>
+      <p style="font-size:16px; color:#6b4a58; line-height:1.6;">Cada pieza es hecha a mano y personalizada, así que el precio depende del diseño, tamaño y detalles. Escríbenos y te preparamos una cotización sin compromiso.</p>
+    </div>
+    <div class="pricing-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:28px; max-width:1100px; margin:0 auto;">
+      <div style="background:#fff; border-radius:22px; padding:36px 30px; text-align:center; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25);">
+        <h3 style="font-family:'Playfair Display', serif; color:#c2185b; font-size:22px; margin:0 0 14px;">Velas Temáticas</h3>
+        <p style="font-size:14px; color:#8a6b78; margin:0 0 20px; line-height:1.6;">Diseño y tema a elegir, tamaño y nivel de personalización.</p>
+        <a href="#contacto" style="display:inline-block; border:2px solid #c2185b; color:#c2185b; padding:10px 24px; border-radius:24px; font-weight:700; font-size:14px;" style-hover="background:#c2185b; color:#fff;">Cotizar</a>
+      </div>
+      <div style="background:#fff; border-radius:22px; padding:36px 30px; text-align:center; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25); border: 2px solid #c2185b;">
+        <div style="background:#c2185b; color:#fff; display:inline-block; padding:4px 14px; border-radius:14px; font-size:12px; font-weight:700; letter-spacing:1px; margin-bottom:14px;">MÁS PEDIDO</div>
+        <h3 style="font-family:'Playfair Display', serif; color:#c2185b; font-size:22px; margin:0 0 14px;">Cake Toppers</h3>
+        <p style="font-size:14px; color:#8a6b78; margin:0 0 20px; line-height:1.6;">Número de figuras, tamaño del pastel y nivel de detalle.</p>
+        <a href="#contacto" style="display:inline-block; background:#c2185b; color:#fff; padding:10px 24px; border-radius:24px; font-weight:700; font-size:14px;" style-hover="background:#921249;">Cotizar</a>
+      </div>
+      <div style="background:#fff; border-radius:22px; padding:36px 30px; text-align:center; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25);">
+        <h3 style="font-family:'Playfair Display', serif; color:#c2185b; font-size:22px; margin:0 0 14px;">Camisetas &amp; Sublimación</h3>
+        <p style="font-size:14px; color:#8a6b78; margin:0 0 20px; line-height:1.6;">Cantidad de piezas, diseño y accesorios incluidos.</p>
+        <a href="#contacto" style="display:inline-block; border:2px solid #c2185b; color:#c2185b; padding:10px 24px; border-radius:24px; font-weight:700; font-size:14px;" style-hover="background:#c2185b; color:#fff;">Cotizar</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIOS -->
+  <section id="testimonios" class="sec-pad" style="padding:100px 5vw; background:#fff; scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 56px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">TESTIMONIOS</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0; font-weight:700;">Lo que dicen nuestros clientes</h2>
+    </div>
+    <div class="testimonials-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:28px; max-width:1100px; margin:0 auto;">
+      <div style="background:#fdf6f1; border-radius:22px; padding:32px;">
+        <div style="color:#c2185b; font-size:18px; margin-bottom:14px;">★★★★★</div>
+        <p style="font-size:15px; line-height:1.7; color:#5a3d48; margin:0 0 18px; font-style:italic;">"La vela de cumpleaños quedó preciosa, superó lo que imaginaba. Se nota el cuidado en cada detalle."</p>
+        <strong style="font-size:14px; color:#4a2c3a;">— Cliente en Nueva Jersey</strong>
+      </div>
+      <div style="background:#fdf6f1; border-radius:22px; padding:32px;">
+        <div style="color:#c2185b; font-size:18px; margin-bottom:14px;">★★★★★</div>
+        <p style="font-size:15px; line-height:1.7; color:#5a3d48; margin:0 0 18px; font-style:italic;">"Pedimos los cake toppers para la boda y llegaron justo a tiempo, con un acabado hermoso."</p>
+        <strong style="font-size:14px; color:#4a2c3a;">— Cliente internacional</strong>
+      </div>
+      <div style="background:#fdf6f1; border-radius:22px; padding:32px;">
+        <div style="color:#c2185b; font-size:18px; margin-bottom:14px;">★★★★★</div>
+        <p style="font-size:15px; line-height:1.7; color:#5a3d48; margin:0 0 18px; font-style:italic;">"La camiseta con ropa intercambiable fue el regalo favorito de mi hija. Calidad excelente."</p>
+        <strong style="font-size:14px; color:#4a2c3a;">— Mamá encantada</strong>
+      </div>
+    </div>
+    <p style="text-align:center; font-size:13px; color:#b08a97; margin-top:36px;">*Reseñas de ejemplo — reemplázalas con las opiniones reales de tus clientes.</p>
+  </section>
+
+  <!-- CONTACTO -->
+  <section id="contacto" class="sec-pad" style="padding:100px 5vw; background: linear-gradient(135deg, #c2185b 0%, #e0577e 100%); color:#fff; scroll-margin-top:80px;">
+    <div style="max-width:900px; margin:0 auto; text-align:center;">
+      <p style="color:#f8d7e3; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">CONTACTO</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; margin:0 0 18px; font-weight:700;">Hagamos algo mágico juntos</h2>
+      <p style="font-size:17px; line-height:1.7; color:#fce4ec; max-width:560px; margin:0 auto 46px;">Escríbenos para tu cotización personalizada. Enviamos a Estados Unidos y a todo el mundo.</p>
+      <div style="display:flex; justify-content:center; gap:44px; flex-wrap:wrap; margin-bottom:46px;">
+        <a href="mailto:encantelia.creations@gmail.com" style="color:#fff; font-weight:600; font-size:16px;">✉ encantelia.creations@gmail.com</a>
+        <a href="tel:2017728058" style="color:#fff; font-weight:600; font-size:16px;">☎ 201.772.8058</a>
+      </div>
+      <div style="display:flex; justify-content:center; gap:28px; flex-wrap:wrap;">
+        <a href="https://www.facebook.com/encantelia" target="_blank" style="color:#fff; font-weight:700; font-size:15px; border:1.5px solid rgba(255,255,255,0.5); padding:10px 20px; border-radius:24px;" style-hover="background:rgba(255,255,255,0.15);">Facebook: Encantelia Creations</a>
+        <a href="https://www.instagram.com/encantelia" target="_blank" style="color:#fff; font-weight:700; font-size:15px; border:1.5px solid rgba(255,255,255,0.5); padding:10px 20px; border-radius:24px;" style-hover="background:rgba(255,255,255,0.15);">Instagram: @encantelia.creations</a>
+        <a href="https://www.tiktok.com/@encantelia" target="_blank" style="color:#fff; font-weight:700; font-size:15px; border:1.5px solid rgba(255,255,255,0.5); padding:10px 20px; border-radius:24px;" style-hover="background:rgba(255,255,255,0.15);">TikTok: @encantelia</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background:#3a1e28; color:#f2d9e2; padding:40px 5vw; text-align:center;">
+    <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px;">
+      <img src="assets/logo.png" alt="Encantelia" style="width:36px; height:36px; object-fit:contain;">
+      <span style="font-family:'Playfair Display', serif; font-weight:700; font-size:17px;">Encantelia Creations</span>
+    </div>
+    <p style="font-size:13px; letter-spacing:2px; color:#e0577e; font-weight:700; margin:0 0 14px;">♥ CREA · CELEBRA · ENCANTA ♥</p>
+    <p style="font-size:13px; color:#b892a0; margin:0;">© 2026 Encantelia Creations. Todos los derechos reservados.</p>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { menuOpen: false, cartOpen: false, cart: [], payAmount: '' };
+  videoRef = React.createRef();
+
+  componentDidMount() {
+    const v = this.videoRef.current;
+    if (v) {
+      v.muted = true;
+      v.volume = 0;
+      v.defaultMuted = true;
+      const tryPlay = () => v.play().catch(() => {});
+      tryPlay();
+      v.addEventListener('loadedmetadata', tryPlay);
+    }
+  }
+
+  addToCart = (item) => {
+    this.setState(s => s.cart.some(c => c.id === item.id)
+      ? { cartOpen: true }
+      : { cart: [...s.cart, item], cartOpen: true });
+  };
+
+  removeFromCart = (e) => {
+    const id = e.currentTarget.dataset.itemId;
+    this.setState(s => ({ cart: s.cart.filter(c => c.id !== id) }));
+  };
+
+  renderVals() {
+    const cart = this.state.cart;
+    const itemNames = cart.map(c => c.name).join(', ') || 'Cotización Encantelia Creations';
+    return {
+      menuOpen: this.state.menuOpen,
+      toggleMenu: () => this.setState(s => ({ menuOpen: !s.menuOpen })),
+      cartOpen: this.state.cartOpen,
+      toggleCart: () => this.setState(s => ({ cartOpen: !s.cartOpen })),
+      cart,
+      cartCount: cart.length,
+      hasCartItems: cart.length > 0,
+      addToCart: this.addToCart,
+      removeFromCart: this.removeFromCart,
+      videoRef: this.videoRef,
+      addVelas: () => this.addToCart({ id: 'velas', name: 'Vela Temática Personalizada' }),
+      addToppers: () => this.addToCart({ id: 'toppers', name: 'Cake Topper Personalizado' }),
+      addCamisetas: () => this.addToCart({ id: 'camisetas', name: 'Camiseta Intercambiable' }),
+      addSublimacion: () => this.addToCart({ id: 'sublimacion', name: 'Sublimación (tumbler/taza)' }),
+      addBolso: () => this.addToCart({ id: 'bolso', name: 'Bolso sublimable con ropa intercambiable' }),
+      payAmount: this.state.payAmount,
+      setPayAmount: (e) => this.setState({ payAmount: e.target.value }),
+      payItemName: itemNames,
+    };
+  }
+}
+</script>
+</body>
+</html>

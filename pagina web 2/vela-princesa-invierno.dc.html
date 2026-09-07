@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #fdf6f1; }
+    a { color: #c2185b; text-decoration: none; }
+    a:hover { color: #921249; }
+    .pd-grid > div { min-width: 0; }
+    @media (max-width: 760px) {
+      .pd-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
+  <script src="./image-slot.js"></script>
+</helmet>
+<div style="font-family:'Quicksand',sans-serif; color:#4a2c3a; background:#fdf6f1; min-height:100vh;">
+  <header style="display:flex; align-items:center; justify-content:space-between; padding:18px 5vw; border-bottom:1px solid #f2d9e2;">
+    <a href="./Encantelia.dc.html#productos" style="font-weight:700; font-size:14px;">← Volver a Encantelia</a>
+    <span style="font-family:'Playfair Display',serif; font-weight:700; color:#c2185b; font-size:18px;">Encantelia Creations</span>
+  </header>
+  <section style="max-width:1100px; margin:0 auto; padding:48px 5vw 90px;">
+    <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:13px; margin:0 0 20px;">VELAS TEMÁTICAS</p>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:48px; align-items:start;" class="pd-grid">
+      <div>
+        <image-slot id="vela-princesa-invierno-foto" src="assets/vela-princesa-invierno.webp" placeholder="Foto: vela numérica de princesa invernal" shape="rounded" radius="20" style="width:100%; height:460px; box-shadow:0 24px 50px -22px rgba(194,24,91,0.3); display:block;"></image-slot>
+        <p style="font-size:13px; color:#8a6b78; margin-top:14px; line-height:1.6;">La fotografía muestra diseños anteriores como referencia de estilo. El precio corresponde a UNA (1) vela personalizada, no a todas las velas que aparecen en la imagen.</p>
+      </div>
+      <div>
+        <h1 style="font-family:'Playfair Display',serif; font-size:32px; color:#c2185b; margin:0 0 6px; font-weight:700;">Vela numérica personalizada de princesa invernal</h1>
+        <p style="font-style:italic; color:#8a6b78; font-size:15px; margin:0 0 18px;">Winter Princess Personalized Number Candle</p>
+        <p style="font-size:26px; font-weight:700; color:#4a2c3a; margin:0 0 6px;">$22 <span style="font-size:14px; font-weight:600; color:#8a6b78;">— por una vela personalizada</span></p>
+        <p style="font-size:13px; color:#b08a97; margin:0 0 26px; line-height:1.5;">El precio incluye una (1) vela personalizada. La fotografía puede mostrar varias velas de diseños anteriores solo como referencia.</p>
+
+        <p style="font-size:15px; line-height:1.7; color:#6b4a58; margin:0 0 16px;">Handmade personalized number candle created for birthdays and special celebrations. Choose the number, theme and colors. Each order includes ONE custom candle. Photos show previous designs as examples; the finished item may have small handmade differences. Adult supervision is required whenever the candle is lit.</p>
+        <p style="font-size:15px; line-height:1.7; color:#6b4a58; margin:0 0 30px;">Vela numérica personalizada hecha a mano para cumpleaños y celebraciones especiales. Elige el número, tema y colores. Cada pedido incluye UNA vela personalizada. Las fotografías muestran diseños anteriores como ejemplos; el producto final puede presentar pequeñas diferencias propias del trabajo artesanal. Se requiere supervisión de un adulto mientras la vela esté encendida.</p>
+
+        <div style="background:#fff; border-radius:20px; padding:26px 26px 30px; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25);">
+          <h3 style="font-family:'Playfair Display',serif; color:#4a2c3a; font-size:18px; margin:0 0 18px;">Personaliza tu vela</h3>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <label style="font-size:13px; font-weight:700; color:#4a2c3a;">Número o edad *
+              <input type="text" required="" value="{{ numero }}" onChange="{{ setNumero }}" placeholder="ej. 5" style="display:block; width:100%; margin-top:6px; padding:11px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif; box-sizing:border-box;">
+            </label>
+            <label style="font-size:13px; font-weight:700; color:#4a2c3a;">Tema deseado *
+              <input type="text" required="" value="{{ tema }}" onChange="{{ setTema }}" placeholder="ej. princesa de invierno" style="display:block; width:100%; margin-top:6px; padding:11px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif; box-sizing:border-box;">
+            </label>
+            <label style="font-size:13px; font-weight:700; color:#4a2c3a;">Colores principales *
+              <input type="text" required="" value="{{ colores }}" onChange="{{ setColores }}" placeholder="ej. blanco, celeste y plata" style="display:block; width:100%; margin-top:6px; padding:11px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif; box-sizing:border-box;">
+            </label>
+            <label style="font-size:13px; font-weight:700; color:#4a2c3a;">Nombre (opcional)
+              <input type="text" value="{{ nombre }}" onChange="{{ setNombre }}" placeholder="ej. Emma" style="display:block; width:100%; margin-top:6px; padding:11px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif; box-sizing:border-box;">
+            </label>
+            <label style="font-size:13px; font-weight:700; color:#4a2c3a;">Fecha del evento *
+              <input type="date" required="" value="{{ fecha }}" onChange="{{ setFecha }}" style="display:block; width:100%; margin-top:6px; padding:11px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif; box-sizing:border-box;">
+            </label>
+          </div>
+          <sc-if value="{{ showValidation }}" hint-placeholder-val="{{ false }}">
+            <p style="color:#c2185b; font-size:13px; font-weight:600; margin:14px 0 0;">Completa los campos obligatorios (*) antes de continuar.</p>
+          </sc-if>
+          <a href="{{ mailHref }}" onClick="{{ handleSubmit }}" target="_blank" style="display:block; text-align:center; margin-top:20px; background:#c2185b; color:#fff; padding:14px; border-radius:24px; font-weight:700; font-size:15px;" style-hover="background:#921249;">Solicitar cotización de esta vela</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer style="background:#3a1e28; color:#f2d9e2; padding:34px 5vw; text-align:center;">
+    <p style="font-size:13px; letter-spacing:2px; color:#e0577e; font-weight:700; margin:0 0 10px;">♥ CREA · CELEBRA · ENCANTA ♥</p>
+    <p style="font-size:13px; color:#b892a0; margin:0;">© 2026 Encantelia Creations.</p>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { numero: '', tema: '', colores: '', nombre: '', fecha: '', touched: false };
+
+  isValid() {
+    const s = this.state;
+    return !!(s.numero.trim() && s.tema.trim() && s.colores.trim() && s.fecha.trim());
+  }
+
+  handleSubmit = (e) => {
+    if (!this.isValid()) { e.preventDefault(); this.setState({ touched: true }); }
+  };
+
+  renderVals() {
+    const s = this.state;
+    const body = 'Hola, quiero cotizar esta vela personalizada (Winter Princess Personalized Number Candle - $22):\n\n' +
+      'Número o edad: ' + s.numero + '\n' +
+      'Tema deseado: ' + s.tema + '\n' +
+      'Colores principales: ' + s.colores + '\n' +
+      'Nombre (opcional): ' + (s.nombre || '—') + '\n' +
+      'Fecha del evento: ' + s.fecha;
+    return {
+      numero: s.numero, tema: s.tema, colores: s.colores, nombre: s.nombre, fecha: s.fecha,
+      setNumero: e => this.setState({ numero: e.target.value }),
+      setTema: e => this.setState({ tema: e.target.value }),
+      setColores: e => this.setState({ colores: e.target.value }),
+      setNombre: e => this.setState({ nombre: e.target.value }),
+      setFecha: e => this.setState({ fecha: e.target.value }),
+      showValidation: s.touched && !this.isValid(),
+      handleSubmit: this.handleSubmit,
+      mailHref: 'mailto:encantelia.creations@gmail.com?subject=' + encodeURIComponent('Cotización - Vela princesa invernal ($22)') + '&body=' + encodeURIComponent(body),
+    };
+  }
+}
+</script>
+</body>
+</html>
