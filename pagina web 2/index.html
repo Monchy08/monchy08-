@@ -644,8 +644,33 @@ class Component extends DCLogic {
   paypalContainerRef = React.createRef();
   _paypalRendered = false;
 
+  componentDidMount() {
+    const v = this.videoRef.current;
+    if (v) {
+      v.muted = true;
+      v.volume = 0;
+      v.defaultMuted = true;
+      const tryPlay = () => v.play().catch(() => {});
+      tryPlay();
+      v.addEventListener('loadedmetadata', tryPlay);
+    }
+    this._paypalPoll = setInterval(() => {
+      if (window.paypal) {
+        clearInterval(this._paypalPoll);
+        this.forceUpdate();
+      }
+    }, 300);
+  }
+
+  componentWillUnmount() {
+    if (this._paypalPoll) clearInterval(this._paypalPoll);
+  }
+
   componentDidUpdate() {
     const s = this.state;
+    const anyModalOpen = s.cartOpen || s.tshirtConfigOpen || s.menuOpen || !!s.paidConfirmation;
+    document.body.style.overflow = anyModalOpen ? 'hidden' : '';
+
     const hasPriced = s.cart.some(c => c.priced);
     const hasQuote = s.cart.some(c => !c.priced);
     const onlyPriced = hasPriced && !hasQuote;
@@ -745,18 +770,6 @@ class Component extends DCLogic {
       tshirtConfigOpen: false,
     }));
   };
-
-  componentDidMount() {
-    const v = this.videoRef.current;
-    if (v) {
-      v.muted = true;
-      v.volume = 0;
-      v.defaultMuted = true;
-      const tryPlay = () => v.play().catch(() => {});
-      tryPlay();
-      v.addEventListener('loadedmetadata', tryPlay);
-    }
-  }
 
   addToCart = (item) => {
     this.setState(s => s.cart.some(c => c.id === item.id)
