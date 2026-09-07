@@ -14,7 +14,7 @@ async function getAccessToken() {
 
 function decodeCustomId(customId) {
   const parts = (customId || '').split('|');
-  const [orderId, doll, size, included, extra, qty] = parts;
+  const [orderId, doll, size, included, extra, qty, clientId, sessionId] = parts;
   const extraRaw = extra === 'none' ? '' : (extra || '');
   return {
     orderId: orderId || '',
@@ -24,6 +24,8 @@ function decodeCustomId(customId) {
     extraLooks: extraRaw.split('-').filter(Boolean).join(', '),
     extraCount: extraRaw ? extraRaw.split('-').filter(Boolean).length : 0,
     qty: qty || '1',
+    clientId: clientId && clientId !== 'none' ? clientId : null,
+    sessionId: sessionId && sessionId !== 'none' ? sessionId : null,
   };
 }
 
@@ -40,24 +42,26 @@ async function logToSheet(row) {
 // Envía purchase a GA4 vía Measurement Protocol (server-side) — solo se llama tras verificar la firma
 // del webhook y confirmar PAYMENT.CAPTURE.COMPLETED. transaction_id = Capture ID de PayPal (único/idempotente),
 // así que reintentos del mismo webhook no duplican la transacción en GA4 (GA4 deduplica por transaction_id).
-async function sendPurchaseToGA4({ captureId, value, currency, doll, size, qty }) {
+// clientId/sessionId reales (del navegador que compró) atribuyen la compra a su sesión/tráfico original;
+// si no llegaron (bloqueador de anuncios, SDK no cargó a tiempo), cae a un client_id sintético.
+async function sendPurchaseToGA4({ captureId, value, currency, doll, size, qty, clientId, sessionId }) {
   if (!process.env.GA4_MEASUREMENT_ID || !process.env.GA4_API_SECRET) return;
-  const clientId = 'server.' + captureId; // client_id requerido por el Measurement Protocol; no hay cookie de navegador aquí.
+  const finalClientId = clientId || ('server.' + captureId);
+  const params = {
+    transaction_id: captureId,
+    currency,
+    value: Number(value),
+    engagement_time_msec: 1, // Valor técnico de compatibilidad con GA4 (no es una medición real de tiempo de interacción; el servidor no tiene acceso a esa señal del navegador).
+    items: [{ item_name: 'T-Shirt intercambiable', item_variant: `${doll} / talla ${size}`, price: Number(value) / (Number(qty) || 1), quantity: Number(qty) || 1 }],
+  };
+  if (sessionId) params.session_id = sessionId;
   await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${process.env.GA4_MEASUREMENT_ID}&api_secret=${process.env.GA4_API_SECRET}`, {
     method: 'POST',
     body: JSON.stringify({
-      client_id: clientId,
-      events: [{
-        name: 'purchase',
-        params: {
-          transaction_id: captureId,
-          currency,
-          value: Number(value),
-          items: [{ item_name: 'T-Shirt intercambiable', item_variant: `${doll} / talla ${size}`, price: Number(value) / (Number(qty) || 1), quantity: Number(qty) || 1 }],
-        },
-      }],
+      client_id: finalClientId,
+      events: [{ name: 'purchase', params }],
     }),
-  }).catch(() => {}); // no debe romper el webhook si GA4 falla
+  }).catch(() => {});
 }
 
 exports.handler = async (event) => {
@@ -130,6 +134,8 @@ exports.handler = async (event) => {
         doll: config.doll,
         size: config.size,
         qty: config.qty,
+        clientId: config.clientId,
+        sessionId: config.sessionId,
       });
     }
 

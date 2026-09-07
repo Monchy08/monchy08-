@@ -18,7 +18,7 @@ exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
   try {
     const body = JSON.parse(event.body || '{}');
-    const { doll, size, includedLooks, extraLooks, qty } = body;
+    const { doll, size, includedLooks, extraLooks, qty, gaClientId, gaSessionId } = body;
 
     if (!doll || !size || !Array.isArray(includedLooks) || includedLooks.length !== 3 || !Array.isArray(extraLooks) || !qty || qty < 1) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Configuración de pedido inválida' }) };
@@ -31,9 +31,15 @@ exports.handler = async (event) => {
     const total = unitPrice * qty;
 
     const orderId = 'ENC-' + Date.now();
-    const customId = [orderId, doll, size, includedLooks.join('-'), extraLooks.length ? extraLooks.join('-') : 'none', qty]
-      .join('|')
-      .slice(0, 127);
+    const clientIdField = gaClientId || 'none';
+    const sessionIdField = gaSessionId || 'none';
+    let customId = [orderId, doll, size, includedLooks.join('-'), extraLooks.length ? extraLooks.join('-') : 'none', qty, clientIdField, sessionIdField].join('|');
+    // Nunca truncar clientId/sessionId a medias (un ID cortado sería inválido para GA4).
+    // Si el custom_id completo excede el límite de PayPal, se omiten ambos campos de atribución
+    // por completo (degradación controlada) y el evento purchase cae al fallback sintético.
+    if (customId.length > 127) {
+      customId = [orderId, doll, size, includedLooks.join('-'), extraLooks.length ? extraLooks.join('-') : 'none', qty].join('|');
+    }
 
     const token = await getAccessToken();
     const base = PAYPAL_API(process.env.PAYPAL_ENV || 'sandbox');
