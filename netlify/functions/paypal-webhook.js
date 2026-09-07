@@ -15,12 +15,14 @@ async function getAccessToken() {
 function decodeCustomId(customId) {
   const parts = (customId || '').split('|');
   const [orderId, doll, size, included, extra, qty] = parts;
+  const extraRaw = extra === 'none' ? '' : (extra || '');
   return {
     orderId: orderId || '',
     doll: doll || '',
     size: size || '',
     includedLooks: (included || '').split('-').join(', '),
-    extraLooks: extra === 'none' ? '' : (extra || '').split('-').join(', '),
+    extraLooks: extraRaw.split('-').filter(Boolean).join(', '),
+    extraCount: extraRaw ? extraRaw.split('-').filter(Boolean).length : 0,
     qty: qty || '1',
   };
 }
@@ -74,7 +76,7 @@ exports.handler = async (event) => {
     }
 
     const config = decodeCustomId(resource.custom_id);
-    const extraCount = config.extraLooks ? config.extraLooks.split('-').length : 0;
+    const extraCount = config.extraCount;
 
     // El webhook es el registro oficial/definitivo del pedido — no depende de que el navegador siga abierto.
     await logToSheet({
