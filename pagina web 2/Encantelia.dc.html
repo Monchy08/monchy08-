@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-WVD43837VY"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-WVD43837VY');
-</script>
-
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="google-site-verification" content="3t5b5CVV0D4kHYMceaMVmmqpWlvUoM23Whc8zi7Mh2k" />
@@ -677,6 +669,13 @@ class Component extends DCLogic {
       tryPlay();
       v.addEventListener('loadedmetadata', tryPlay);
     }
+    if (window.gtag) {
+      window.gtag('event', 'view_item', {
+        currency: 'USD',
+        value: 43,
+        items: [{ item_id: 'tshirt-intercambiable', item_name: 'T-Shirt intercambiable', price: 43, quantity: 1 }],
+      });
+    }
   }
 
   renderPaypalButtons = (el, retries) => {
@@ -723,6 +722,21 @@ class Component extends DCLogic {
     const s = this.state;
     const anyModalOpen = s.cartOpen || s.tshirtConfigOpen || s.menuOpen || !!s.paidConfirmation;
     document.body.style.overflow = anyModalOpen ? 'hidden' : '';
+
+    const hasPriced = s.cart.some(c => c.priced);
+    const hasQuote = s.cart.some(c => !c.priced);
+    if (s.cartOpen && hasPriced && !hasQuote && !this._checkoutFired) {
+      this._checkoutFired = true;
+      if (window.gtag) {
+        const pricedTotal = s.cart.filter(c => c.priced).reduce((sum, c) => sum + c.price, 0);
+        window.gtag('event', 'begin_checkout', {
+          currency: 'USD',
+          value: pricedTotal,
+          items: s.cart.filter(c => c.priced).map(c => ({ item_name: c.name, price: c.unitPrice, quantity: c.qty })),
+        });
+      }
+    }
+    if (!s.cartOpen) this._checkoutFired = false;
   }
   dollsData = [
     { id: 'doll1', slotId: 'cfg-doll-1', placeholder: 'Foto muñeca 1' },
@@ -786,12 +800,22 @@ class Component extends DCLogic {
       cartOpen: true,
       tshirtConfigOpen: false,
     }));
+    if (window.gtag) {
+      window.gtag('event', 'add_to_cart', {
+        currency: 'USD',
+        value: total,
+        items: [{ item_name: 'T-Shirt intercambiable', price: unitPrice, quantity: s.tsQty }],
+      });
+    }
   };
 
   addToCart = (item) => {
     this.setState(s => s.cart.some(c => c.id === item.id)
       ? { cartOpen: true }
       : { cart: [...s.cart, item], cartOpen: true });
+    if (window.gtag) {
+      window.gtag('event', 'add_to_cart', { currency: 'USD', items: [{ item_id: item.id, item_name: item.name, quantity: 1 }] });
+    }
   };
 
   removeFromCart = (e) => {
