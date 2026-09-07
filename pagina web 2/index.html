@@ -656,8 +656,8 @@ class Component extends DCLogic {
   }
 
   renderPaypalButtons = (el, retries) => {
-    if (!el) { this._paypalRendered = false; return; }
-    if (this._paypalRendered) return;
+    if (!el) return;
+    if (el.dataset.rendered) return;
     if (!window.paypal) {
       if (retries === undefined) retries = 20;
       if (retries <= 0) return;
@@ -666,7 +666,7 @@ class Component extends DCLogic {
     }
     const firstItem = this.state.cart.find(c => c.priced);
     if (!firstItem) return;
-    this._paypalRendered = true;
+    el.dataset.rendered = '1';
     window.paypal.Buttons({
       createOrder: () => fetch('/.netlify/functions/paypal-create-order', {
         method: 'POST',
