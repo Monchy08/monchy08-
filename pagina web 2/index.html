@@ -281,7 +281,7 @@
       </div>
       <div style="padding:22px 26px; border-top:1px solid #f2d9e2; background:#fdf6f1;">
         <sc-if value="{{ onlyPriced }}" hint-placeholder-val="{{ false }}">
-          <div ref="{{ paypalContainerRef }}" id="paypal-buttons-container"></div>
+          <div ref="{{ paypalRefCallback }}" id="paypal-buttons-container"></div>
           <sc-if value="{{ paypalError }}" hint-placeholder-val="{{ false }}">
             <p style="color:#c2185b; font-size:12.5px; margin-top:10px; text-align:center;">{{ paypalError }}</p>
           </sc-if>
@@ -641,7 +641,6 @@
 class Component extends DCLogic {
   state = { menuOpen: false, cartOpen: false, cart: [], payAmount: '', tshirtConfigOpen: false, tsStep: 1, tsDoll: null, tsSize: null, tsIncluded: [], tsExtra: [], tsQty: 1, paidConfirmation: null, paypalError: '' };
   videoRef = React.createRef();
-  paypalContainerRef = React.createRef();
   _paypalRendered = false;
 
   componentDidMount() {
@@ -654,58 +653,52 @@ class Component extends DCLogic {
       tryPlay();
       v.addEventListener('loadedmetadata', tryPlay);
     }
-    this._paypalPoll = setInterval(() => {
-      if (window.paypal) {
-        clearInterval(this._paypalPoll);
-        this.forceUpdate();
-      }
-    }, 300);
   }
 
-  componentWillUnmount() {
-    if (this._paypalPoll) clearInterval(this._paypalPoll);
-  }
+  renderPaypalButtons = (el, retries) => {
+    if (!el) { this._paypalRendered = false; return; }
+    if (this._paypalRendered) return;
+    if (!window.paypal) {
+      if (retries === undefined) retries = 20;
+      if (retries <= 0) return;
+      setTimeout(() => this.renderPaypalButtons(el, retries - 1), 300);
+      return;
+    }
+    const firstItem = this.state.cart.find(c => c.priced);
+    if (!firstItem) return;
+    this._paypalRendered = true;
+    window.paypal.Buttons({
+      createOrder: () => fetch('/.netlify/functions/paypal-create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doll: firstItem.dollLabel,
+          size: firstItem.size,
+          includedLooks: firstItem.includedLabels.split(', '),
+          extraLooks: firstItem.extraLabels ? firstItem.extraLabels.split(', ') : [],
+          qty: firstItem.qty,
+        }),
+      }).then(r => r.json()).then(d => {
+        if (!d.id) throw new Error(d.error || 'No se pudo crear la orden');
+        return d.id;
+      }).catch(err => { this.setState({ paypalError: err.message }); throw err; }),
+      onApprove: (data) => fetch('/.netlify/functions/paypal-capture-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: data.orderID }),
+      }).then(r => r.json()).then(res => {
+        if (!res.paid) { this.setState({ paypalError: 'El pago no se completó (estado: ' + res.status + ').' }); return; }
+        this.setState({ paidConfirmation: res, cart: [], cartOpen: false, payAmount: '' });
+      }),
+      onCancel: () => {},
+      onError: (err) => this.setState({ paypalError: 'Error de PayPal: ' + err }),
+    }).render(el);
+  };
 
   componentDidUpdate() {
     const s = this.state;
     const anyModalOpen = s.cartOpen || s.tshirtConfigOpen || s.menuOpen || !!s.paidConfirmation;
     document.body.style.overflow = anyModalOpen ? 'hidden' : '';
-
-    const hasPriced = s.cart.some(c => c.priced);
-    const hasQuote = s.cart.some(c => !c.priced);
-    const onlyPriced = hasPriced && !hasQuote;
-    if (s.cartOpen && onlyPriced && !s.paidConfirmation && window.paypal && this.paypalContainerRef.current && !this._paypalRendered) {
-      this.paypalContainerRef.current.innerHTML = '';
-      const firstItem = s.cart.find(c => c.priced);
-      window.paypal.Buttons({
-        createOrder: () => fetch('/.netlify/functions/paypal-create-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            doll: firstItem.dollLabel,
-            size: firstItem.size,
-            includedLooks: firstItem.includedLabels.split(', '),
-            extraLooks: firstItem.extraLabels ? firstItem.extraLabels.split(', ') : [],
-            qty: firstItem.qty,
-          }),
-        }).then(r => r.json()).then(d => {
-          if (!d.id) throw new Error(d.error || 'No se pudo crear la orden');
-          return d.id;
-        }).catch(err => { this.setState({ paypalError: err.message }); throw err; }),
-        onApprove: (data) => fetch('/.netlify/functions/paypal-capture-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: data.orderID }),
-        }).then(r => r.json()).then(res => {
-          if (!res.paid) { this.setState({ paypalError: 'El pago no se completó (estado: ' + res.status + ').' }); return; }
-          this.setState({ paidConfirmation: res, cart: [], cartOpen: false, payAmount: '' });
-        }),
-        onCancel: () => {},
-        onError: (err) => this.setState({ paypalError: 'Error de PayPal: ' + err }),
-      }).render(this.paypalContainerRef.current);
-      this._paypalRendered = true;
-    }
-    if (!onlyPriced || !s.cartOpen) this._paypalRendered = false;
   }
   dollsData = [
     { id: 'doll1', slotId: 'cfg-doll-1', placeholder: 'Foto muñeca 1' },
@@ -851,6 +844,7 @@ class Component extends DCLogic {
       paidConfirmation: s.paidConfirmation,
       closePaidConfirmation: () => this.setState({ paidConfirmation: null }),
       paypalError: s.paypalError,
+      paypalRefCallback: (el) => this.renderPaypalButtons(el),
       addVelas: () => this.addToCart({ id: 'velas', name: 'Vela Temática Personalizada' }),
       addToppers: () => this.addToCart({ id: 'toppers', name: 'Cake Topper Personalizado' }),
       addSublimacion: () => this.addToCart({ id: 'sublimacion', name: 'Sublimación (tumbler/taza)' }),
