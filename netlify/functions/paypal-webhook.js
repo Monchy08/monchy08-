@@ -19,8 +19,8 @@ function decodeCustomId(customId) {
     orderId: orderId || '',
     doll: doll || '',
     size: size || '',
-    includedLooks: included || '',
-    extraLooks: extra === 'none' ? '' : extra || '',
+    includedLooks: (included || '').split('-').join(', '),
+    extraLooks: extra === 'none' ? '' : (extra || '').split('-').join(', '),
     qty: qty || '1',
   };
 }
