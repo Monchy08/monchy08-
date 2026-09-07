@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<script src="./image-slot.js"></script>
+<!-- PayPal Sandbox client-id (público, no es secreto). Cambiar por el Client ID Live antes de pasar a producción real. -->
+<script src="https://www.paypal.com/sdk/js?client-id=BAAN3GysAhdTdh80IcD1NMp514TGKWvs12AxgLr4UWEXnB73SMfI7QfiQmxkIa46F_j-1jy2oVPYmoGFcs&currency=USD&components=buttons&intent=capture"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <template id="__bundler_thumbnail" data-bg-color="#fce4ec">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="90" fill="#fdf6f1" stroke="#c2185b" stroke-width="4"/>
+      <text x="100" y="112" font-family="serif" font-size="70" font-weight="700" fill="#c2185b" text-anchor="middle">E</text>
+    </svg>
+  </template>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #fdf6f1; }
+    a { color: #c2185b; text-decoration: none; }
+    a:hover { color: #921249; }
+    ::selection { background: #f7c9d8; }
+    @media (max-width: 900px) {
+      .desktop-nav { display: none !important; }
+      .mobile-toggle { display: flex !important; }
+    }
+    @media (max-width: 760px) {
+      header { padding: 12px 5vw !important; }
+      .sec-pad { padding-top: 56px !important; padding-bottom: 56px !important; }
+      .hero-h1 { font-size: 32px !important; }
+      .sec-h2 { font-size: 28px !important; }
+      .flagship-h2 { font-size: 26px !important; }
+      .flagship-grid { grid-template-columns: 1fr !important; height: auto !important; }
+      .flagship-media { height: 320px !important; }
+      .about-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+      .about-badges { grid-template-columns: 1fr !important; }
+      .products-grid { grid-template-columns: 1fr !important; }
+      .card-split { grid-template-columns: 1fr !important; }
+      .card-split-media { grid-template-columns: repeat(3, 1fr) !important; height: 220px !important; }
+      .card-media-tall { height: 220px !important; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      #velas-numericas .products-grid { grid-template-columns: 1fr !important; }
+      .pricing-grid { grid-template-columns: 1fr !important; }
+      .testimonials-grid { grid-template-columns: 1fr !important; }
+      .bolso-media { height: 300px !important; }
+      .hero-sub { font-size: 16px !important; }
+      .hero-cats { font-size: 12.5px !important; margin-bottom: 20px !important; }
+      .flagship-tag { font-size: 16px !important; }
+    }
+  </style>
+</helmet>
+
+<div style="font-family: 'Quicksand', sans-serif; color: #4a2c3a; background: #fdf6f1; overflow-x: hidden;">
+
+  <!-- NAV -->
+  <header style="position: sticky; top: 0; z-index: 50; background: rgba(253,246,241,0.92); backdrop-filter: blur(8px); border-bottom: 1px solid #f2d9e2; display: flex; align-items: center; justify-content: space-between; padding: 14px 5vw;">
+    <a href="#inicio" style="display: flex; align-items: center; gap: 12px;">
+      <img src="assets/logo.png" alt="Encantelia Creations" style="width: 52px; height: 52px; object-fit: contain;">
+      <span style="font-family: 'Playfair Display', serif; font-weight: 700; font-size: 22px; color: #c2185b; letter-spacing: 0.3px;">Encantelia <span style="color:#b8863c; font-size:13px; letter-spacing:3px; font-weight:600; display:block; font-family:'Quicksand',sans-serif; margin-top:-2px;">CREATIONS</span></span>
+    </a>
+    <nav style="display: flex; align-items: center; gap: 28px;" class="desktop-nav">
+      <a href="#nosotros" style="color:#4a2c3a; font-weight:600; font-size:15px;">Nosotros</a>
+      <a href="#productos" style="color:#4a2c3a; font-weight:600; font-size:15px;">Productos</a>
+      <a href="#galeria" style="color:#4a2c3a; font-weight:600; font-size:15px;">Galería</a>
+      <a href="#precios" style="color:#4a2c3a; font-weight:600; font-size:15px;">Precios</a>
+      <a href="#testimonios" style="color:#4a2c3a; font-weight:600; font-size:15px;">Testimonios</a>
+      <a href="#productos" style="background: #c2185b; color: #fff; padding: 10px 22px; border-radius: 30px; font-weight: 700; font-size: 14px; letter-spacing:0.5px;" style-hover="background:#921249; color:#fff;">COMPRAR</a>
+      <button onClick="{{ toggleCart }}" style="position:relative; background:#fce4ec; border:none; width:42px; height:42px; border-radius:50%; font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center;" aria-label="Carrito">
+        🛍
+        <sc-if value="{{ hasCartItems }}" hint-placeholder-val="{{ false }}">
+          <span style="position:absolute; top:-4px; right:-4px; background:#c2185b; color:#fff; font-size:11px; font-weight:700; width:19px; height:19px; border-radius:50%; display:flex; align-items:center; justify-content:center;">{{ cartCount }}</span>
+        </sc-if>
+      </button>
+    </nav>
+    <div style="display:none; align-items:center; gap:14px;" class="mobile-toggle">
+      <button onClick="{{ toggleCart }}" style="position:relative; background:#fce4ec; border:none; width:38px; height:38px; border-radius:50%; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center;" aria-label="Carrito">
+        🛍
+        <sc-if value="{{ hasCartItems }}" hint-placeholder-val="{{ false }}">
+          <span style="position:absolute; top:-4px; right:-4px; background:#c2185b; color:#fff; font-size:10px; font-weight:700; width:17px; height:17px; border-radius:50%; display:flex; align-items:center; justify-content:center;">{{ cartCount }}</span>
+        </sc-if>
+      </button>
+      <button onClick="{{ toggleMenu }}" style="background:none; border:none; font-size:28px; color:#c2185b; cursor:pointer;">☰</button>
+    </div>
+  </header>
+
+  <sc-if value="{{ menuOpen }}">
+    <div style="position: fixed; inset: 0; z-index: 60; background: #fdf6f1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;">
+      <button onClick="{{ toggleMenu }}" style="position:absolute; top:20px; right:24px; background:none; border:none; font-size:30px; color:#c2185b;">✕</button>
+      <a href="#nosotros" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Nosotros</a>
+      <a href="#productos" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Productos</a>
+      <a href="#galeria" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Galería</a>
+      <a href="#precios" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Precios</a>
+      <a href="#testimonios" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Testimonios</a>
+      <a href="#productos" onClick="{{ toggleMenu }}" style="background:#c2185b; color:#fff; padding:12px 32px; border-radius:30px; font-weight:700; font-size:18px; letter-spacing:0.5px;">COMPRAR</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ paidConfirmation }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; background:rgba(58,30,40,0.5); z-index:90; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:#fff; border-radius:24px; max-width:480px; width:100%; padding:36px 30px; text-align:center; box-shadow:0 40px 80px rgba(58,30,40,0.35);">
+        <div style="font-size:44px; margin-bottom:14px;">✓</div>
+        <h3 style="font-family:'Playfair Display',serif; font-size:22px; color:#c2185b; margin:0 0 10px;">¡Pago confirmado!</h3>
+        <p style="font-size:14px; color:#6b4a58; margin:0 0 18px;">Gracias por tu compra. Te contactaremos para coordinar el envío.</p>
+        <div style="background:#fdf6f1; border-radius:14px; padding:16px 18px; text-align:left; font-size:13px; color:#4a2c3a; line-height:1.8; margin-bottom:20px;">
+          <div>Estado: <strong>{{ paidConfirmation.status }}</strong></div>
+          <div>Monto: <strong>${{ paidConfirmation.amount }} {{ paidConfirmation.currency }}</strong></div>
+          <div>ID de captura PayPal: <strong>{{ paidConfirmation.captureId }}</strong></div>
+        </div>
+        <button onClick="{{ closePaidConfirmation }}" style="background:#c2185b; color:#fff; border:none; padding:12px 28px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;">Cerrar</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ tshirtConfigOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeTshirtConfig }}" style="position:fixed; inset:0; background:rgba(58,30,40,0.5); z-index:80;"></div>
+    <div style="position:fixed; inset:0; z-index:81; display:flex; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:#fff; border-radius:24px; max-width:640px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 40px 80px rgba(58,30,40,0.35); padding:26px 22px 28px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+          <span style="font-family:'Playfair Display',serif; font-weight:700; font-size:19px; color:#c2185b;">Configura tu T-Shirt</span>
+          <button onClick="{{ closeTshirtConfig }}" style="background:none; border:none; font-size:22px; color:#4a2c3a; cursor:pointer;">✕</button>
+        </div>
+        <p style="font-size:12.5px; font-weight:700; color:#b8863c; letter-spacing:1px; margin:0 0 20px;">PASO {{ tsStep }} DE 6</p>
+
+        <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Elige tu muñeca</h3>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(96px,1fr)); gap:12px; margin-bottom:8px;">
+            <sc-for list="{{ dolls }}" as="doll" hint-placeholder-count="3">
+              <button onClick="{{ selectDollHandler }}" data-doll-id="{{ doll.id }}" style="position:relative; padding:0; border-radius:16px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ doll.borderStyle }}">
+                <image-slot id="{{ doll.slotId }}" placeholder="{{ doll.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
+                <sc-if value="{{ doll.selected }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute; top:6px; right:6px; background:#c2185b; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;">✓</span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Elige la talla de la T-Shirt</h3>
+          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5">
+              <button onClick="{{ selectSizeHandler }}" data-size="{{ sz.value }}" style="min-width:56px; min-height:48px; padding:0 16px; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; background:#fff; color:#4a2c3a; {{ sz.borderStyle }}">{{ sz.value }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 6px;">Elige tus 3 looks incluidos</h3>
+          <p style="font-size:14px; font-weight:700; color:#c2185b; margin:0 0 14px;">Looks seleccionados: {{ tsIncludedCount }} de 3</p>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ looksIncludedView }}" as="look" hint-placeholder-count="8">
+              <button onClick="{{ toggleIncludedHandler }}" data-look-id="{{ look.id }}" style="position:relative; padding:0; border-radius:14px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ look.borderStyle }}">
+                <image-slot id="{{ look.slotId }}" placeholder="{{ look.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
+                <sc-if value="{{ look.selected }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute; top:5px; right:5px; background:#c2185b; color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">{{ look.order }}</span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep4 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 6px;">¿Quieres más looks?</h3>
+          <p style="font-size:14px; color:#6b4a58; margin:0 0 14px;">Agrega looks adicionales por <strong style="color:#c2185b;">$10.00 c/u</strong>. Seleccionados: {{ tsExtraCount }}</p>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ looksExtraView }}" as="look" hint-placeholder-count="5">
+              <button onClick="{{ toggleExtraHandler }}" data-look-id="{{ look.id }}" style="position:relative; padding:0; border-radius:14px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ look.borderStyle }}">
+                <image-slot id="{{ look.slotId }}" placeholder="{{ look.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
+                <sc-if value="{{ look.selected }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute; top:5px; right:5px; background:#c2185b; color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">+$10</span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep5 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 18px;">Cantidad</h3>
+          <div style="display:flex; align-items:center; gap:18px; margin-bottom:8px;">
+            <button onClick="{{ decQty }}" style="width:48px; height:48px; border-radius:50%; border:2px solid #c2185b; color:#c2185b; background:#fff; font-size:22px; font-weight:700; cursor:pointer;">−</button>
+            <span style="font-size:22px; font-weight:700; color:#4a2c3a; min-width:30px; text-align:center;">{{ tsQty }}</span>
+            <button onClick="{{ incQty }}" style="width:48px; height:48px; border-radius:50%; border:2px solid #c2185b; color:#c2185b; background:#fff; font-size:22px; font-weight:700; cursor:pointer;">+</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep6 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Resumen</h3>
+          <div style="background:#fdf6f1; border-radius:16px; padding:18px 20px; margin-bottom:8px; font-size:14px; color:#4a2c3a; line-height:1.8;">
+            <div>Muñeca: <strong>{{ tsDollLabel }}</strong></div>
+            <div>Talla: <strong>{{ tsSize }}</strong></div>
+            <div>Looks incluidos: <strong>{{ tsIncludedLabels }}</strong></div>
+            <sc-if value="{{ tsExtraLabels }}" hint-placeholder-val="{{ false }}">
+              <div>Looks adicionales: <strong>{{ tsExtraLabels }}</strong></div>
+            </sc-if>
+            <div>Cantidad: <strong>{{ tsQty }}</strong></div>
+          </div>
+          <div style="background:#fdf6f1; border-radius:16px; padding:18px 20px; margin-top:10px; font-size:14px; color:#4a2c3a; line-height:1.9;">
+            <div>Precio base T-Shirt + 3 looks: <strong>$43.00</strong></div>
+            <sc-if value="{{ tsExtraCount }}" hint-placeholder-val="{{ false }}">
+              <div>{{ tsExtraNounLabel }}: <strong>+${{ tsExtraAmountLabel }}</strong></div>
+            </sc-if>
+            <div>Precio unitario configurado: <strong>${{ tsUnitPrice }}</strong></div>
+            <div>Cantidad: <strong>{{ tsQty }}</strong></div>
+            <div style="margin-top:6px; padding-top:8px; border-top:1px solid #f2d9e2; font-size:16px; font-weight:700; color:#c2185b;">Subtotal: ${{ tsTotal }}</div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:22px; padding-top:18px; border-top:1px solid #f2d9e2;">
+          <sc-if value="{{ tsStep }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ goBack }}" style="visibility:{{ backVisibility }}; background:none; border:none; color:#8a6b78; font-weight:700; font-size:14px; cursor:pointer;">← Atrás</button>
+          </sc-if>
+          <sc-if value="{{ isStep6 }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ addConfiguredToCart }}" style="background:#c2185b; color:#fff; border:none; padding:14px 26px; border-radius:26px; font-weight:700; font-size:15px; cursor:pointer;">AGREGAR AL CARRITO — ${{ tsTotal }}</button>
+          </sc-if>
+          <sc-if value="{{ isNotStep6 }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ goNext }}" disabled="{{ nextDisabled }}" style="background:{{ nextBg }}; color:#fff; border:none; padding:14px 26px; border-radius:26px; font-weight:700; font-size:15px; cursor:pointer;">Continuar →</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ cartOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ toggleCart }}" style="position:fixed; inset:0; background:rgba(58,30,40,0.4); z-index:70;"></div>
+    <div style="position:fixed; top:0; right:0; height:100%; width:min(420px, 92vw); background:#fff; z-index:71; box-shadow:-20px 0 50px rgba(58,30,40,0.25); display:flex; flex-direction:column;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:22px 26px; border-bottom:1px solid #f2d9e2;">
+        <h3 style="font-family:'Playfair Display', serif; font-size:20px; color:#c2185b; margin:0;">{{ cartTitle }}</h3>
+        <button onClick="{{ toggleCart }}" style="background:none; border:none; font-size:22px; color:#4a2c3a; cursor:pointer;">✕</button>
+      </div>
+      <div style="flex:1; overflow-y:auto; padding:20px 26px;">
+        <sc-if value="{{ hasCartItems }}" hint-placeholder-val="{{ false }}">
+          <sc-for list="{{ cart }}" as="item" hint-placeholder-count="2">
+            <div style="padding:14px 0; border-bottom:1px solid #f7e6ec;">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+                <span style="font-size:15px; color:#4a2c3a; font-weight:600;">{{ item.name }}</span>
+                <button onClick="{{ removeFromCart }}" data-item-id="{{ item.id }}" style="background:none; border:none; color:#b08a97; font-size:13px; cursor:pointer; text-decoration:underline; flex-shrink:0;">quitar</button>
+              </div>
+              <sc-if value="{{ item.priced }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:13px; color:#6b4a58; margin-top:6px; line-height:1.7;">
+                  <div>Muñeca: <strong>{{ item.dollLabel }}</strong></div>
+                  <div>Talla: <strong>{{ item.size }}</strong></div>
+                  <div>Looks incluidos: <strong>{{ item.includedLabels }}</strong></div>
+                  <sc-if value="{{ item.extraLabels }}" hint-placeholder-val="{{ false }}">
+                    <div>Looks adicionales: <strong>{{ item.extraLabels }}</strong></div>
+                  </sc-if>
+                  <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #f2d9e2;">Precio base T-Shirt + 3 looks: <strong>${{ item.basePriceLabel }}</strong></div>
+                  <sc-if value="{{ item.extraCount }}" hint-placeholder-val="{{ false }}">
+                    <div>{{ item.extraNounLabel }}: <strong>+${{ item.extraAmountLabel }}</strong></div>
+                  </sc-if>
+                  <div>Precio unitario configurado: <strong>${{ item.unitPriceLabel }}</strong></div>
+                  <div>Cantidad: <strong>{{ item.qty }}</strong></div>
+                </div>
+                <div style="font-size:15px; font-weight:700; color:#c2185b; margin-top:8px;">Subtotal: ${{ item.priceLabel }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noCartItems }}" hint-placeholder-val="{{ true }}">
+          <p style="color:#8a6b78; font-size:15px; text-align:center; margin-top:40px;">Aún no agregaste productos. Explora nuestras creaciones y agrégalas aquí.</p>
+        </sc-if>
+        <sc-if value="{{ onlyPriced }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:10px; padding-top:14px; border-top:2px solid #f2d9e2; display:flex; justify-content:space-between; font-weight:700; color:#4a2c3a; font-size:16px;">
+            <span>Total a pagar</span><span>${{ pricedTotalLabel }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ mixedCart }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:10px; padding-top:14px; border-top:2px solid #f2d9e2;">
+            <div style="display:flex; justify-content:space-between; font-weight:700; color:#4a2c3a; font-size:15px; margin-bottom:8px;">
+              <span>Subtotal precio fijo</span><span>${{ pricedTotalLabel }}</span>
+            </div>
+            <p style="font-size:12.5px; color:#b08a97; margin:0;">Los demás productos de tu carrito requieren cotización — te contactamos para confirmar ese precio por separado.</p>
+          </div>
+        </sc-if>
+        <sc-if value="{{ onlyQuote }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:13px; color:#b08a97; margin-top:20px; line-height:1.6;">Nuestros productos son hechos a mano y personalizados, así que primero te confirmamos el precio por correo o WhatsApp. Cuando lo tengas, escribe el monto aquí y paga con PayPal.</p>
+        </sc-if>
+      </div>
+      <div style="padding:22px 26px; border-top:1px solid #f2d9e2; background:#fdf6f1;">
+        <sc-if value="{{ onlyPriced }}" hint-placeholder-val="{{ false }}">
+          <div ref="{{ paypalContainerRef }}" id="paypal-buttons-container"></div>
+          <sc-if value="{{ paypalError }}" hint-placeholder-val="{{ false }}">
+            <p style="color:#c2185b; font-size:12.5px; margin-top:10px; text-align:center;">{{ paypalError }}</p>
+          </sc-if>
+        </sc-if>
+        <sc-if value="{{ onlyQuote }}" hint-placeholder-val="{{ true }}">
+          <a href="mailto:encantelia.creations@gmail.com?subject=Cotización Encantelia&body=Hola, quiero cotizar: {{ payItemName }}" style="display:block; text-align:center; background:#fff; border:2px solid #c2185b; color:#c2185b; padding:12px; border-radius:24px; font-weight:700; font-size:14px; margin-bottom:14px;">Solicitar cotización por correo</a>
+          <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" style="display:flex; flex-direction:column; gap:10px;">
+            <input type="hidden" name="cmd" value="_xclick">
+            <input type="hidden" name="business" value="encantelia.creations@gmail.com">
+            <input type="hidden" name="item_name" value="{{ payItemName }}">
+            <input type="hidden" name="currency_code" value="USD">
+            <input type="hidden" name="no_shipping" value="0">
+            <label style="font-size:13px; font-weight:700; color:#4a2c3a;">Monto acordado (USD)</label>
+            <input type="number" name="amount" step="0.01" min="1" required="" value="{{ payAmount }}" onChange="{{ setPayAmount }}" placeholder="ej. 25.00" style="padding:12px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif;">
+            <button type="submit" style="background:#0070ba; color:#fff; border:none; padding:13px; border-radius:24px; font-weight:700; font-size:15px; cursor:pointer;" style-hover="background:#005ea6;">Pagar con PayPal</button>
+          </form>
+        </sc-if>
+        <sc-if value="{{ mixedCart }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:13px; color:#8a6b78; margin:0 0 12px; text-align:center;">Este carrito mezcla precio fijo y cotización \u2014 propuesta pendiente de tu aprobación.</p>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- HERO -->
+  <section id="inicio" class="sec-pad" style="position: relative; padding: 40px 5vw 56px; background: radial-gradient(circle at 85% 10%, #fce4ec 0%, #fdf6f1 55%);">
+    <div style="max-width:1050px; margin:0 auto 26px;">
+      <img src="assets/hero-banner.png" alt="Encantelia Creations" class="hero-banner-img" style="width:100%; height:auto; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); display:block;">
+    </div>
+    <div style="max-width:720px; margin:0 auto; text-align:center;">
+      <h1 class="hero-h1" style="font-family:'Playfair Display', serif; font-size:52px; line-height:1.1; color:#c2185b; margin:0 0 16px; font-weight:700;">Detalles que encantan, momentos que perduran.</h1>
+      <p class="hero-sub" style="font-size:19px; line-height:1.5; color:#4a2c3a; font-weight:600; margin:0 auto 10px; max-width:560px;">Regalos personalizados que convierten momentos especiales en recuerdos únicos.</p>
+      <p class="hero-cats" style="font-size:14px; line-height:1.6; color:#8a6b78; margin:0 auto 26px; max-width:560px; font-weight:600;">T-Shirts intercambiables para niñas · Velas temáticas · Cake toppers · Sublimación personalizada</p>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center;">
+        <a href="#productos" style="background:#c2185b; color:#fff; padding:15px 32px; border-radius:30px; font-weight:700; font-size:16px; letter-spacing:0.5px;" style-hover="background:#921249;">VER PRODUCTOS</a>
+        <a href="#contacto" style="border:2px solid #c2185b; color:#c2185b; padding:13px 30px; border-radius:30px; font-weight:700; font-size:16px; letter-spacing:0.5px;" style-hover="background:#fce4ec;">PERSONALIZA EL TUYO</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTO PRINCIPAL -->
+  <section class="sec-pad" style="padding: 0 5vw 90px; background: radial-gradient(circle at 85% 10%, #fce4ec 0%, #fdf6f1 55%);">
+    <div style="max-width:1200px; margin:0 auto; text-align:center;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">NUESTRO PRODUCTO ESTRELLA</p>
+      <h2 class="flagship-h2" style="font-family:'Playfair Display', serif; font-size:38px; color:#4a2c3a; margin:0 0 12px; font-weight:700;">T-Shirts con ropa y pelo intercambiables para niñas</h2>
+      <p class="flagship-tag" style="font-size:18px; font-weight:700; color:#c2185b; margin:0 0 10px;">Una T-Shirt. Muchos estilos. Mucha imaginación.</p>
+      <p style="font-size:16px; line-height:1.6; color:#6b4a58; max-width:640px; margin:0 auto 28px;">Tu niña puede cambiar el cabello y la ropa de su muñeca para crear diferentes looks una y otra vez.</p>
+      <div class="flagship-grid" style="display:grid; grid-template-columns: 1.4fr 1fr; gap:24px; align-items:stretch; height:560px; overflow:hidden;">
+        <div class="flagship-media" style="width:100%; height:100%; min-height:0; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+          <img src="assets/tshirt-collection-banner.jpg" alt="Colección T-Shirts con ropa y pelo intercambiables para niñas" style="width:100%; height:100%; object-fit:contain; display:block;">
+        </div>
+        <div class="flagship-media" style="width:100%; height:100%; min-height:0; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); background:#fce4ec; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+          <video src="assets/doll-video.mp4" autoplay="true" loop="true" muted="true" playsInline="true" ref="{{ videoRef }}" style="height:100%; width:auto; max-width:100%; object-fit:contain; display:block;"></video>
+        </div>
+      </div>
+      <ul class="flagship-checklist" style="list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 24px; margin:28px 0 0; padding:0;">
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Ropa intercambiable</li>
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Cabello intercambiable</li>
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Diseños exclusivos</li>
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Sets adicionales disponibles</li>
+        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Accesorios hechos a mano</li>
+      </ul>
+      <div style="max-width:560px; margin:28px auto 0; background:#fff; border-radius:20px; padding:26px 28px; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25); text-align:left;">
+        <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+          <span style="font-family:'Playfair Display', serif; font-size:34px; font-weight:700; color:#c2185b;">$43.00</span>
+          <span style="font-size:15px; font-weight:700; color:#4a2c3a;">Incluye T-Shirt + 3 looks completos</span>
+        </div>
+        <p style="font-size:15px; color:#6b4a58; margin:0 0 4px;">✓ 1 T-Shirt con la muñeca sublimada</p>
+        <p style="font-size:15px; color:#6b4a58; margin:0 0 18px;">✓ 3 looks completos con ropa + cabello intercambiables (el look inicial + 2 sets adicionales)</p>
+        <div style="border-top:1px solid #f2d9e2; padding-top:16px;">
+          <p style="font-size:16px; font-weight:700; color:#4a2c3a; margin:0 0 4px;">¿Quieres más looks?</p>
+          <p style="font-size:14px; color:#6b4a58; margin:0;">Agrega sets adicionales de ropa + cabello por <strong style="color:#c2185b;">$10.00 c/u</strong>.</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:26px;">
+        <button onClick="{{ openTshirtConfig }}" style="background:#c2185b; color:#fff; border:none; padding:14px 32px; border-radius:30px; font-weight:700; font-size:16px; letter-spacing:0.5px; cursor:pointer;" style-hover="background:#921249;">VER T-SHIRTS INTERCAMBIABLES</button>
+        <a href="#productos" style="border:2px solid #c2185b; color:#c2185b; padding:12px 30px; border-radius:30px; font-weight:700; font-size:15px;" style-hover="background:#fce4ec;">Ver todos los productos</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOBRE NOSOTROS -->
+  <section id="nosotros" class="sec-pad" style="padding: 100px 5vw; background:#fff; scroll-margin-top:80px;">
+    <div class="about-grid" style="display:grid; grid-template-columns: 0.8fr 1.2fr; gap:64px; align-items:center; max-width:1200px; margin:0 auto;">
+      <div style="display:flex; justify-content:center;">
+        <img src="assets/logo.png" alt="Encantelia Creations" style="width:100%; max-width:340px;">
+      </div>
+      <div>
+        <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">SOBRE NOSOTROS</p>
+        <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0 0 22px; font-weight:700;">Hecho con amor, para crear recuerdos que encantan.</h2>
+        <p style="font-size:17px; line-height:1.75; color:#6b4a58; margin:0 0 18px;">En Encantelia Creations diseñamos y creamos a mano velas temáticas, cake toppers y prendas personalizables, pensadas para hacer únicos los momentos que más importan. Cada pieza se elabora con materiales premium y muchísimo cariño, para pequeños y grandes soñadores por igual.</p>
+        <p style="font-size:17px; line-height:1.75; color:#6b4a58; margin:0 0 30px;">Trabajamos con clientes locales e internacionales &mdash; enviamos nuestras creaciones a Estados Unidos y a todo el mundo.</p>
+        <div class="about-badges" style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-size:22px;">✦</span>
+            <div><strong style="display:block; font-size:15px; color:#4a2c3a;">Detalles únicos</strong><span style="font-size:14px; color:#8a6b78;">Para cada ocasión</span></div>
+          </div>
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-size:22px;">✦</span>
+            <div><strong style="display:block; font-size:15px; color:#4a2c3a;">Calidad artesanal</strong><span style="font-size:14px; color:#8a6b78;">Materiales premium</span></div>
+          </div>
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-size:22px;">✦</span>
+            <div><strong style="display:block; font-size:15px; color:#4a2c3a;">Hecho con amor</strong><span style="font-size:14px; color:#8a6b78;">Para grandes y pequeños</span></div>
+          </div>
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <span style="font-size:22px;">✦</span>
+            <div><strong style="display:block; font-size:15px; color:#4a2c3a;">Envíos globales</strong><span style="font-size:14px; color:#8a6b78;">USA y el mundo</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTOS -->
+  <section id="productos" class="sec-pad" style="padding: 100px 5vw; background: linear-gradient(180deg, #fdf6f1 0%, #fce4ec 100%); scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 60px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">NUESTRAS CREACIONES</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0; font-weight:700;">Productos &amp; Servicios</h2>
+    </div>
+    <div class="products-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 32px; max-width:1100px; margin:0 auto;">
+      <div class="card-split" style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25); grid-column: span 2; display:grid; grid-template-columns: 1fr 1.1fr;">
+        <div style="padding:28px 30px; display:flex; flex-direction:column; justify-content:center;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">Velas Temáticas</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Diseños encantadores y personalizados para cumpleaños y ocasiones especiales &mdash; princesas, personajes favoritos y más.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Personalizadas</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Diseños únicos</span>
+          </div>
+          <button onClick="{{ addVelas }}" style="align-self:flex-start; background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+        </div>
+        <div class="card-split-media" style="display:grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap:3px; padding:3px;">
+          <img src="assets/vela-1.jpg" alt="Vela temática Cenicienta" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/vela-2.jpg" alt="Vela temática Alicia" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/vela-3.jpg" alt="Vela temática Paw Patrol" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/vela-4.jpg" alt="Vela temática Winnie Pooh" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+        </div>
+      </div>
+      <div class="card-split" style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25); grid-column: span 2; display:grid; grid-template-columns: 1.1fr 1fr;">
+        <div class="card-split-media" style="display:grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap:3px; padding:3px;">
+          <img src="assets/topper-1.jpg" alt="Cake topper bautizo" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-2.jpg" alt="Cake topper mariachi" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-3.jpg" alt="Cake topper novios" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-4.jpg" alt="Cake topper boda" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-5.jpg" alt="Cake topper familia" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+          <img src="assets/topper-6.jpg" alt="Cake topper quinceañera" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:4px;">
+        </div>
+        <div style="padding:28px 30px; display:flex; flex-direction:column; justify-content:center;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">Cake Toppers</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Personajes exclusivos hechos con amor, el toque perfecto para tu pastel &mdash; bodas, bautizos, comuniones y más.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">A la medida</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Hecho a mano</span>
+          </div>
+          <button onClick="{{ addToppers }}" style="align-self:flex-start; margin-top:16px; background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+        </div>
+      </div>
+      <div id="tshirts" class="card-split" style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25); grid-column: span 2; display:grid; grid-template-columns: 1fr 1.3fr; scroll-margin-top:96px;">
+        <div class="card-media-tall" style="padding:3px;">
+          <img src="assets/tshirt-collection-banner.jpg" alt="Colección T-Shirts con ropa intercambiable para niñas" style="width:100%; height:100%; object-fit:cover; display:block; border-radius:8px;">
+        </div>
+        <div style="padding:28px 30px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">T-Shirts con ropa y pelo intercambiables para niñas</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Camisetas sublimadas con muñeca y accesorios de ropa intercambiables con velcro para niñas.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Velcro</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Alta calidad</span>
+          </div>
+                    <p style="font-size:15px; font-weight:700; color:#c2185b; margin:0 0 12px;">$43.00 <span style="font-size:13px; color:#8a6b78; font-weight:600;">· incluye 3 looks completos</span></p>
+          <button onClick="{{ openTshirtConfig }}" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">Configurar y comprar</button>
+        </div>
+      </div>
+      <div style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25);">
+        <div class="card-media-tall" style="width:100%; height:260px; box-sizing:border-box; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de tazas, tumblers y más</div>
+        <div style="padding:28px 30px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">Sublimación &amp; Más</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Tumblers, tazas y otros artículos personalizados por sublimación, perfectos para regalar.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Tumblers</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Tazas</span>
+          </div>
+          <button onClick="{{ addSublimacion }}" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+        </div>
+      </div>
+      <div style="background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 20px 40px -24px rgba(194,24,91,0.25);">
+        <div class="bolso-media" style="width:100%; height:420px; background:#fdf6f1; overflow:hidden;">
+          <img src="assets/bolso.jpg" alt="Bolso sublimable con ropa intercambiable" style="width:100%; height:100%; object-fit:contain; display:block; transition:transform 0.4s ease; cursor:zoom-in;" style-hover="transform:scale(1.6);">
+        </div>
+        <div style="padding:28px 30px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:24px; color:#c2185b; margin:0 0 10px;">Bolso Sublimable con Ropa Intercambiable</h3>
+          <p style="font-size:15px; line-height:1.6; color:#6b4a58; margin:0 0 14px;">Bolso de tela sublimado con muñeca y accesorios de ropa intercambiables, ideal para regalar o coleccionar.</p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Sublimado</span>
+            <span style="background:#fce4ec; color:#c2185b; font-size:13px; font-weight:600; padding:6px 14px; border-radius:20px;">Personalizable</span>
+          </div>
+          <button onClick="{{ addBolso }}" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">+ Agregar a mi cotización</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VELAS NUMERICAS -->
+  <section id="velas-numericas" class="sec-pad" style="padding: 100px 5vw; background:#fff; scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 20px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">VELAS TEMÁTICAS</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0 0 16px; font-weight:700;">Velas Numéricas Personalizadas</h2>
+      <p style="font-size:15px; color:#8a6b78; line-height:1.6;">Cada precio corresponde a UNA (1) vela personalizada. Las fotos muestran diseños anteriores como referencia, no la totalidad de velas mostradas.</p>
+    </div>
+    <div class="products-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width:1100px; margin:0 auto;">
+      <a href="./vela-princesa-invierno.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-princesa-invierno" src="assets/vela-princesa-invierno.webp" placeholder="Foto: princesa invernal" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Princesa invernal</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$22 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-personaje-lunares.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-personaje-lunares" src="assets/vela-personaje-lunares.webp" placeholder="Foto: personaje con lunares" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Personaje con lunares</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$18 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-heroe-cuento.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-heroe-cuento" src="assets/vela-heroe-cuento.webp" placeholder="Foto: héroe o cuento" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Héroe o cuento</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$18 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-princesa-rosas.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-princesa-rosas" src="assets/vela-princesa-rosas.webp" placeholder="Foto: princesa con rosas" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Princesa con rosas</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$18 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-sirena.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-sirena" src="assets/vela-sirena.webp" placeholder="Foto: sirena" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Sirena</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$25 · Personalizar →</p>
+        </div>
+      </a>
+      <a href="./vela-sirena-rosada.dc.html" style="background:#fdf6f1; border-radius:20px; overflow:hidden; box-shadow:0 16px 32px -22px rgba(194,24,91,0.25); display:block;">
+        <image-slot id="grid-vela-sirena-rosada" src="assets/vela-sirena-rosada.webp" placeholder="Foto: sirena cabello rosado" shape="rect" style="width:100%; height:220px; display:block;"></image-slot>
+        <div style="padding:16px 18px;">
+          <h3 style="font-family:'Playfair Display', serif; font-size:16px; color:#4a2c3a; margin:0 0 6px;">Sirena cabello rosado</h3>
+          <p style="font-size:14px; color:#c2185b; font-weight:700; margin:0;">$25 · Personalizar →</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- GALERIA -->
+  <section id="galeria" class="sec-pad" style="padding: 100px 5vw; background:#fff; scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 56px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">GALERÍA</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0; font-weight:700;">Creaciones que encantan</h2>
+    </div>
+    <div class="gallery-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; max-width:1200px; margin:0 auto;">
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+      <div style="width:100%; height:240px; border-radius:18px; background:#fce4ec; display:flex; align-items:center; justify-content:center; color:#c2185b; font-size:13px; font-weight:600; text-align:center; padding:12px;">Foto de producto</div>
+    </div>
+  </section>
+
+  <!-- PRECIOS -->
+  <section id="precios" class="sec-pad" style="padding:100px 5vw; background:linear-gradient(180deg, #fce4ec 0%, #fdf6f1 100%); scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 56px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">PRECIOS</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0 0 16px; font-weight:700;">Cotizaciones a tu medida</h2>
+      <p style="font-size:16px; color:#6b4a58; line-height:1.6;">Cada pieza es hecha a mano y personalizada, así que el precio depende del diseño, tamaño y detalles. Escríbenos y te preparamos una cotización sin compromiso.</p>
+    </div>
+    <div class="pricing-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:28px; max-width:1100px; margin:0 auto;">
+      <div style="background:#fff; border-radius:22px; padding:36px 30px; text-align:center; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25);">
+        <h3 style="font-family:'Playfair Display', serif; color:#c2185b; font-size:22px; margin:0 0 14px;">Velas Temáticas</h3>
+        <p style="font-size:14px; color:#8a6b78; margin:0 0 20px; line-height:1.6;">Diseño y tema a elegir, tamaño y nivel de personalización.</p>
+        <a href="#contacto" style="display:inline-block; border:2px solid #c2185b; color:#c2185b; padding:10px 24px; border-radius:24px; font-weight:700; font-size:14px;" style-hover="background:#c2185b; color:#fff;">Cotizar</a>
+      </div>
+      <div style="background:#fff; border-radius:22px; padding:36px 30px; text-align:center; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25); border: 2px solid #c2185b;">
+        <div style="background:#c2185b; color:#fff; display:inline-block; padding:4px 14px; border-radius:14px; font-size:12px; font-weight:700; letter-spacing:1px; margin-bottom:14px;">MÁS PEDIDO</div>
+        <h3 style="font-family:'Playfair Display', serif; color:#c2185b; font-size:22px; margin:0 0 14px;">Cake Toppers</h3>
+        <p style="font-size:14px; color:#8a6b78; margin:0 0 20px; line-height:1.6;">Número de figuras, tamaño del pastel y nivel de detalle.</p>
+        <a href="#contacto" style="display:inline-block; background:#c2185b; color:#fff; padding:10px 24px; border-radius:24px; font-weight:700; font-size:14px;" style-hover="background:#921249;">Cotizar</a>
+      </div>
+      <div style="background:#fff; border-radius:22px; padding:36px 30px; text-align:center; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25);">
+        <h3 style="font-family:'Playfair Display', serif; color:#c2185b; font-size:22px; margin:0 0 14px;">Camisetas &amp; Sublimación</h3>
+        <p style="font-size:14px; color:#8a6b78; margin:0 0 20px; line-height:1.6;">Cantidad de piezas, diseño y accesorios incluidos.</p>
+        <a href="#contacto" style="display:inline-block; border:2px solid #c2185b; color:#c2185b; padding:10px 24px; border-radius:24px; font-weight:700; font-size:14px;" style-hover="background:#c2185b; color:#fff;">Cotizar</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIOS -->
+  <section id="testimonios" class="sec-pad" style="padding:100px 5vw; background:#fff; scroll-margin-top:80px;">
+    <div style="text-align:center; max-width:680px; margin:0 auto 56px;">
+      <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">TESTIMONIOS</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; color:#4a2c3a; margin:0; font-weight:700;">Lo que dicen nuestros clientes</h2>
+    </div>
+    <div class="testimonials-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:28px; max-width:1100px; margin:0 auto;">
+      <div style="background:#fdf6f1; border-radius:22px; padding:32px;">
+        <div style="color:#c2185b; font-size:18px; margin-bottom:14px;">★★★★★</div>
+        <p style="font-size:15px; line-height:1.7; color:#5a3d48; margin:0 0 18px; font-style:italic;">"La vela de cumpleaños quedó preciosa, superó lo que imaginaba. Se nota el cuidado en cada detalle."</p>
+        <strong style="font-size:14px; color:#4a2c3a;">— Cliente en Nueva Jersey</strong>
+      </div>
+      <div style="background:#fdf6f1; border-radius:22px; padding:32px;">
+        <div style="color:#c2185b; font-size:18px; margin-bottom:14px;">★★★★★</div>
+        <p style="font-size:15px; line-height:1.7; color:#5a3d48; margin:0 0 18px; font-style:italic;">"Pedimos los cake toppers para la boda y llegaron justo a tiempo, con un acabado hermoso."</p>
+        <strong style="font-size:14px; color:#4a2c3a;">— Cliente internacional</strong>
+      </div>
+      <div style="background:#fdf6f1; border-radius:22px; padding:32px;">
+        <div style="color:#c2185b; font-size:18px; margin-bottom:14px;">★★★★★</div>
+        <p style="font-size:15px; line-height:1.7; color:#5a3d48; margin:0 0 18px; font-style:italic;">"La camiseta con ropa intercambiable fue el regalo favorito de mi hija. Calidad excelente."</p>
+        <strong style="font-size:14px; color:#4a2c3a;">— Mamá encantada</strong>
+      </div>
+    </div>
+    <p style="text-align:center; font-size:13px; color:#b08a97; margin-top:36px;">*Reseñas de ejemplo — reemplázalas con las opiniones reales de tus clientes.</p>
+  </section>
+
+  <!-- CONTACTO -->
+  <section id="contacto" class="sec-pad" style="padding:100px 5vw; background: linear-gradient(135deg, #c2185b 0%, #e0577e 100%); color:#fff; scroll-margin-top:80px;">
+    <div style="max-width:900px; margin:0 auto; text-align:center;">
+      <p style="color:#f8d7e3; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">CONTACTO</p>
+      <h2 class="sec-h2" style="font-family:'Playfair Display', serif; font-size:40px; margin:0 0 18px; font-weight:700;">Hagamos algo mágico juntos</h2>
+      <p style="font-size:17px; line-height:1.7; color:#fce4ec; max-width:560px; margin:0 auto 46px;">Escríbenos para tu cotización personalizada. Enviamos a Estados Unidos y a todo el mundo.</p>
+      <div style="display:flex; justify-content:center; gap:44px; flex-wrap:wrap; margin-bottom:46px;">
+        <a href="mailto:encantelia.creations@gmail.com" style="color:#fff; font-weight:600; font-size:16px;">✉ encantelia.creations@gmail.com</a>
+        <a href="tel:2017728058" style="color:#fff; font-weight:600; font-size:16px;">☎ 201.772.8058</a>
+      </div>
+      <div style="display:flex; justify-content:center; gap:28px; flex-wrap:wrap;">
+        <a href="https://www.facebook.com/encantelia" target="_blank" style="color:#fff; font-weight:700; font-size:15px; border:1.5px solid rgba(255,255,255,0.5); padding:10px 20px; border-radius:24px;" style-hover="background:rgba(255,255,255,0.15);">Facebook: Encantelia Creations</a>
+        <a href="https://www.instagram.com/encantelia" target="_blank" style="color:#fff; font-weight:700; font-size:15px; border:1.5px solid rgba(255,255,255,0.5); padding:10px 20px; border-radius:24px;" style-hover="background:rgba(255,255,255,0.15);">Instagram: @encantelia.creations</a>
+        <a href="https://www.tiktok.com/@encantelia" target="_blank" style="color:#fff; font-weight:700; font-size:15px; border:1.5px solid rgba(255,255,255,0.5); padding:10px 20px; border-radius:24px;" style-hover="background:rgba(255,255,255,0.15);">TikTok: @encantelia</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background:#3a1e28; color:#f2d9e2; padding:40px 5vw; text-align:center;">
+    <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px;">
+      <img src="assets/logo.png" alt="Encantelia" style="width:36px; height:36px; object-fit:contain;">
+      <span style="font-family:'Playfair Display', serif; font-weight:700; font-size:17px;">Encantelia Creations</span>
+    </div>
+    <p style="font-size:13px; letter-spacing:2px; color:#e0577e; font-weight:700; margin:0 0 14px;">♥ CREA · CELEBRA · ENCANTA ♥</p>
+    <p style="font-size:13px; color:#b892a0; margin:0;">© 2026 Encantelia Creations. Todos los derechos reservados.</p>
+  </footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { menuOpen: false, cartOpen: false, cart: [], payAmount: '', tshirtConfigOpen: false, tsStep: 1, tsDoll: null, tsSize: null, tsIncluded: [], tsExtra: [], tsQty: 1, paidConfirmation: null, paypalError: '' };
+  videoRef = React.createRef();
+  paypalContainerRef = React.createRef();
+  _paypalRendered = false;
+
+  componentDidMount() {
+    const v = this.videoRef.current;
+    if (v) {
+      v.muted = true;
+      v.volume = 0;
+      v.defaultMuted = true;
+      const tryPlay = () => v.play().catch(() => {});
+      tryPlay();
+      v.addEventListener('loadedmetadata', tryPlay);
+    }
+    this._paypalPoll = setInterval(() => {
+      if (window.paypal) {
+        clearInterval(this._paypalPoll);
+        this.forceUpdate();
+      }
+    }, 300);
+  }
+
+  componentWillUnmount() {
+    if (this._paypalPoll) clearInterval(this._paypalPoll);
+  }
+
+  componentDidUpdate() {
+    const s = this.state;
+    const anyModalOpen = s.cartOpen || s.tshirtConfigOpen || s.menuOpen || !!s.paidConfirmation;
+    document.body.style.overflow = anyModalOpen ? 'hidden' : '';
+
+    const hasPriced = s.cart.some(c => c.priced);
+    const hasQuote = s.cart.some(c => !c.priced);
+    const onlyPriced = hasPriced && !hasQuote;
+    if (s.cartOpen && onlyPriced && !s.paidConfirmation && window.paypal && this.paypalContainerRef.current && !this._paypalRendered) {
+      this.paypalContainerRef.current.innerHTML = '';
+      const firstItem = s.cart.find(c => c.priced);
+      window.paypal.Buttons({
+        createOrder: () => fetch('/.netlify/functions/paypal-create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doll: firstItem.dollLabel,
+            size: firstItem.size,
+            includedLooks: firstItem.includedLabels.split(', '),
+            extraLooks: firstItem.extraLabels ? firstItem.extraLabels.split(', ') : [],
+            qty: firstItem.qty,
+          }),
+        }).then(r => r.json()).then(d => {
+          if (!d.id) throw new Error(d.error || 'No se pudo crear la orden');
+          return d.id;
+        }).catch(err => { this.setState({ paypalError: err.message }); throw err; }),
+        onApprove: (data) => fetch('/.netlify/functions/paypal-capture-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: data.orderID }),
+        }).then(r => r.json()).then(res => {
+          if (!res.paid) { this.setState({ paypalError: 'El pago no se completó (estado: ' + res.status + ').' }); return; }
+          this.setState({ paidConfirmation: res, cart: [], cartOpen: false, payAmount: '' });
+        }),
+        onCancel: () => {},
+        onError: (err) => this.setState({ paypalError: 'Error de PayPal: ' + err }),
+      }).render(this.paypalContainerRef.current);
+      this._paypalRendered = true;
+    }
+    if (!onlyPriced || !s.cartOpen) this._paypalRendered = false;
+  }
+  dollsData = [
+    { id: 'doll1', slotId: 'cfg-doll-1', placeholder: 'Foto muñeca 1' },
+    { id: 'doll2', slotId: 'cfg-doll-2', placeholder: 'Foto muñeca 2' },
+    { id: 'doll3', slotId: 'cfg-doll-3', placeholder: 'Foto muñeca 3' },
+  ];
+  looksData = Array.from({ length: 8 }).map((_, i) => ({ id: 'look' + (i + 1), slotId: 'cfg-look-' + (i + 1), placeholder: 'Foto look ' + (i + 1) }));
+  sizesData = ['3T', '4T', '5/6', '7/8', '10/12'];
+
+  openTshirtConfig = () => this.setState({ tshirtConfigOpen: true, tsStep: 1, tsDoll: null, tsSize: null, tsIncluded: [], tsExtra: [], tsQty: 1 });
+  closeTshirtConfig = () => this.setState({ tshirtConfigOpen: false });
+  selectDollHandler = (e) => this.setState({ tsDoll: e.currentTarget.dataset.dollId });
+  selectSizeHandler = (e) => this.setState({ tsSize: e.currentTarget.dataset.size });
+  toggleIncludedHandler = (e) => {
+    const id = e.currentTarget.dataset.lookId;
+    this.setState(s => {
+      if (s.tsIncluded.includes(id)) return { tsIncluded: s.tsIncluded.filter(x => x !== id) };
+      if (s.tsIncluded.length >= 3) return {};
+      return { tsIncluded: [...s.tsIncluded, id] };
+    });
+  };
+  toggleExtraHandler = (e) => {
+    const id = e.currentTarget.dataset.lookId;
+    this.setState(s => s.tsExtra.includes(id) ? { tsExtra: s.tsExtra.filter(x => x !== id) } : { tsExtra: [...s.tsExtra, id] });
+  };
+  decQty = () => this.setState(s => ({ tsQty: Math.max(1, s.tsQty - 1) }));
+  incQty = () => this.setState(s => ({ tsQty: s.tsQty + 1 }));
+  goNext = () => this.setState(s => {
+    if (s.tsStep === 1 && !s.tsDoll) return {};
+    if (s.tsStep === 2 && !s.tsSize) return {};
+    if (s.tsStep === 3 && s.tsIncluded.length !== 3) return {};
+    return { tsStep: Math.min(6, s.tsStep + 1) };
+  });
+  goBack = () => this.setState(s => ({ tsStep: Math.max(1, s.tsStep - 1) }));
+
+  addConfiguredToCart = () => {
+    const s = this.state;
+    const lookLabel = (id) => 'L' + String(this.looksData.findIndex(l => l.id === id) + 1).padStart(2, '0');
+    const dollLabel = 'Muñeca ' + (this.dollsData.findIndex(d => d.id === s.tsDoll) + 1);
+    const includedLabels = s.tsIncluded.map(lookLabel).join(', ');
+    const extraLabels = s.tsExtra.map(lookLabel).join(', ');
+    const basePrice = 43;
+    const extraCount = s.tsExtra.length;
+    const extraAmount = extraCount * 10;
+    const extraNounLabel = extraCount + (extraCount === 1 ? ' look adicional' : ' looks adicionales');
+    const unitPrice = basePrice + extraAmount;
+    const total = unitPrice * s.tsQty;
+    const item = {
+      id: 'tshirt-' + Date.now(),
+      name: 'T-Shirt intercambiable',
+      priced: true,
+      dollLabel, size: s.tsSize, includedLabels, extraLabels,
+      basePriceLabel: basePrice.toFixed(2),
+      extraCount, extraAmountLabel: extraAmount.toFixed(2), extraNounLabel,
+      qty: s.tsQty,
+      unitPrice, unitPriceLabel: unitPrice.toFixed(2),
+      price: total, priceLabel: total.toFixed(2),
+    };
+    this.setState(prev => ({
+      cart: [...prev.cart, item],
+      cartOpen: true,
+      tshirtConfigOpen: false,
+    }));
+  };
+
+  addToCart = (item) => {
+    this.setState(s => s.cart.some(c => c.id === item.id)
+      ? { cartOpen: true }
+      : { cart: [...s.cart, item], cartOpen: true });
+  };
+
+  removeFromCart = (e) => {
+    const id = e.currentTarget.dataset.itemId;
+    this.setState(s => ({ cart: s.cart.filter(c => c.id !== id) }));
+  };
+
+  renderVals() {
+    const s = this.state;
+    const cart = this.state.cart;
+    const itemNames = cart.map(c => c.name).join(', ') || 'Cotización Encantelia Creations';
+    const pricedTotal = cart.filter(c => c.priced).reduce((sum, c) => sum + c.price, 0);
+    const hasQuoteInCart = cart.some(c => !c.priced);
+    const hasPriced = cart.some(c => c.priced);
+    const onlyPriced = hasPriced && !hasQuoteInCart;
+    const onlyQuote = hasQuoteInCart && !hasPriced;
+    const mixedCart = hasPriced && hasQuoteInCart;
+    const dolls = this.dollsData.map(d => ({ ...d, selected: s.tsDoll === d.id, borderStyle: s.tsDoll === d.id ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;' }));
+    const sizes = this.sizesData.map(sz => ({ value: sz, borderStyle: s.tsSize === sz ? 'border:2px solid #c2185b; background:#fce4ec;' : 'border:2px solid #e9b7cb;' }));
+    const looksIncludedView = this.looksData.map(l => ({ ...l, order: s.tsIncluded.indexOf(l.id) + 1, selected: s.tsIncluded.includes(l.id), borderStyle: s.tsIncluded.includes(l.id) ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;' }));
+    const looksExtraView = this.looksData.filter(l => !s.tsIncluded.includes(l.id)).map(l => ({ ...l, selected: s.tsExtra.includes(l.id), borderStyle: s.tsExtra.includes(l.id) ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;' }));
+    const unitPrice = 43 + s.tsExtra.length * 10;
+    const tsTotal = (unitPrice * s.tsQty).toFixed(2);
+    const lookLabelFn = (id) => 'L' + String(this.looksData.findIndex(l => l.id === id) + 1).padStart(2, '0');
+    const tsIncludedLabels = s.tsIncluded.map(lookLabelFn).join(', ');
+    const tsExtraLabels = s.tsExtra.map(lookLabelFn).join(', ');
+    const tsExtraAmountLabel = (s.tsExtra.length * 10).toFixed(2);
+    const tsExtraNounLabel = s.tsExtra.length + (s.tsExtra.length === 1 ? ' look adicional' : ' looks adicionales');
+    const nextDisabled = (s.tsStep === 1 && !s.tsDoll) || (s.tsStep === 2 && !s.tsSize) || (s.tsStep === 3 && s.tsIncluded.length !== 3);
+    return {
+      menuOpen: this.state.menuOpen,
+      toggleMenu: () => this.setState(s => ({ menuOpen: !s.menuOpen })),
+      cartOpen: this.state.cartOpen,
+      toggleCart: () => this.setState(s => ({ cartOpen: !s.cartOpen })),
+      cart,
+      cartCount: cart.length,
+      hasCartItems: cart.length > 0,
+      addToCart: this.addToCart,
+      removeFromCart: this.removeFromCart,
+      videoRef: this.videoRef,
+      pricedTotal,
+      pricedTotalLabel: pricedTotal.toFixed(2),
+      hasQuoteInCart,
+      noCartItems: cart.length === 0,
+      onlyPriced, onlyQuote, mixedCart,
+      cartTitle: onlyPriced ? 'Mi carrito' : (mixedCart ? 'Mi pedido' : 'Mi cotización'),
+      tshirtConfigOpen: s.tshirtConfigOpen,
+      openTshirtConfig: this.openTshirtConfig,
+      closeTshirtConfig: this.closeTshirtConfig,
+      tsStep: s.tsStep,
+      isStep1: s.tsStep === 1, isStep2: s.tsStep === 2, isStep3: s.tsStep === 3, isStep4: s.tsStep === 4, isStep5: s.tsStep === 5, isStep6: s.tsStep === 6,
+      isNotStep6: s.tsStep !== 6,
+      dolls, sizes, looksIncludedView, looksExtraView,
+      selectDollHandler: this.selectDollHandler,
+      selectSizeHandler: this.selectSizeHandler,
+      toggleIncludedHandler: this.toggleIncludedHandler,
+      toggleExtraHandler: this.toggleExtraHandler,
+      tsIncludedCount: s.tsIncluded.length,
+      tsExtraCount: s.tsExtra.length,
+      tsQty: s.tsQty,
+      decQty: this.decQty,
+      incQty: this.incQty,
+      goNext: this.goNext,
+      goBack: this.goBack,
+      backVisibility: s.tsStep > 1 ? 'visible' : 'hidden',
+      nextDisabled,
+      nextBg: nextDisabled ? '#e9b7cb' : '#c2185b',
+      tsUnitPrice: unitPrice.toFixed(2),
+      tsTotal,
+      addConfiguredToCart: this.addConfiguredToCart,
+      tsDollLabel: s.tsDoll ? ('Muñeca ' + (this.dollsData.findIndex(d => d.id === s.tsDoll) + 1)) : '',
+      tsSize: s.tsSize,
+      tsIncludedLabels, tsExtraLabels, tsExtraAmountLabel, tsExtraNounLabel,
+      paidConfirmation: s.paidConfirmation,
+      closePaidConfirmation: () => this.setState({ paidConfirmation: null }),
+      paypalError: s.paypalError,
+      addVelas: () => this.addToCart({ id: 'velas', name: 'Vela Temática Personalizada' }),
+      addToppers: () => this.addToCart({ id: 'toppers', name: 'Cake Topper Personalizado' }),
+      addSublimacion: () => this.addToCart({ id: 'sublimacion', name: 'Sublimación (tumbler/taza)' }),
+      addBolso: () => this.addToCart({ id: 'bolso', name: 'Bolso sublimable con ropa intercambiable' }),
+      payAmount: this.state.payAmount,
+      setPayAmount: (e) => this.setState({ payAmount: e.target.value }),
+      payItemName: itemNames,
+    };
+  }
+}
+</script>
+</body>
+</html>
