@@ -84,12 +84,15 @@ async function fetchAttribution(paypalOrderId) {
 // Envía Purchase a Meta Conversions API — solo tras verificar la firma del webhook y confirmar
 // PAYMENT.CAPTURE.COMPLETED. Nunca se dispara Purchase desde el navegador.
 async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc }) {
-  if (!process.env.META_PIXEL_ID || !process.env.META_CAPI_ACCESS_TOKEN) return;
+  if (!process.env.META_PIXEL_ID || !process.env.META_CAPI_ACCESS_TOKEN) {
+    console.log('Meta CAPI skipped: missing META_PIXEL_ID or META_CAPI_ACCESS_TOKEN env vars');
+    return;
+  }
   const apiVersion = process.env.META_GRAPH_API_VERSION || 'v25.0';
   const userData = {};
   if (fbp) userData.fbp = fbp;
   if (fbc) userData.fbc = fbc;
-  await fetch(`https://graph.facebook.com/${apiVersion}/${process.env.META_PIXEL_ID}/events?access_token=${process.env.META_CAPI_ACCESS_TOKEN}`, {
+  const res = await fetch(`https://graph.facebook.com/${apiVersion}/${process.env.META_PIXEL_ID}/events?access_token=${process.env.META_CAPI_ACCESS_TOKEN}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -103,7 +106,11 @@ async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc }) {
       }],
       test_event_code: 'TEST93788', // TEMPORAL: quitar después de verificar en Meta Test Events.
     }),
-  }).catch(() => {});
+  }).catch((e) => ({ ok: false, _fetchError: e.message }));
+  try {
+    const text = await res.text();
+    console.log('Meta CAPI response:', res.status, text);
+  } catch (e) { console.log('Meta CAPI error:', res._fetchError || e.message); }
 }
 
 exports.handler = async (event) => {
