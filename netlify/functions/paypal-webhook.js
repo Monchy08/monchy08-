@@ -101,6 +101,7 @@ async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc }) {
         user_data: userData,
         custom_data: { value: Number(value), currency },
       }],
+      test_event_code: 'TEST93788', // TEMPORAL: quitar después de verificar en Meta Test Events.
     }),
   }).catch(() => {});
 }
