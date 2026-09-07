@@ -27,6 +27,7 @@ function decodeCustomId(customId) {
   };
 }
 
+// El Apps Script del Sheet también envía el correo de notificación (ver instrucción en chat).
 async function logToSheet(row) {
   if (!process.env.SHEETS_WEBHOOK_URL) return;
   await fetch(process.env.SHEETS_WEBHOOK_URL, {
@@ -34,6 +35,29 @@ async function logToSheet(row) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ secret: process.env.SHEETS_SECRET, ...row }),
   });
+}
+
+// Envía purchase a GA4 vía Measurement Protocol (server-side) — solo se llama tras verificar la firma
+// del webhook y confirmar PAYMENT.CAPTURE.COMPLETED. transaction_id = Capture ID de PayPal (único/idempotente),
+// así que reintentos del mismo webhook no duplican la transacción en GA4 (GA4 deduplica por transaction_id).
+async function sendPurchaseToGA4({ captureId, value, currency, doll, size, qty }) {
+  if (!process.env.GA4_MEASUREMENT_ID || !process.env.GA4_API_SECRET) return;
+  const clientId = 'server.' + captureId; // client_id requerido por el Measurement Protocol; no hay cookie de navegador aquí.
+  await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${process.env.GA4_MEASUREMENT_ID}&api_secret=${process.env.GA4_API_SECRET}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      client_id: clientId,
+      events: [{
+        name: 'purchase',
+        params: {
+          transaction_id: captureId,
+          currency,
+          value: Number(value),
+          items: [{ item_name: 'T-Shirt intercambiable', item_variant: `${doll} / talla ${size}`, price: Number(value) / (Number(qty) || 1), quantity: Number(qty) || 1 }],
+        },
+      }],
+    }),
+  }).catch(() => {}); // no debe romper el webhook si GA4 falla
 }
 
 exports.handler = async (event) => {
@@ -97,6 +121,17 @@ exports.handler = async (event) => {
       currency: resource.amount?.currency_code || 'USD',
       notes: 'Registrado vía webhook',
     });
+
+    if (eventType === 'PAYMENT.CAPTURE.COMPLETED') {
+      await sendPurchaseToGA4({
+        captureId: resource.id,
+        value: resource.amount?.value || 0,
+        currency: resource.amount?.currency_code || 'USD',
+        doll: config.doll,
+        size: config.size,
+        qty: config.qty,
+      });
+    }
 
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   } catch (err) {
