@@ -94,6 +94,7 @@ async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc, userAg
   if (fbc) userData.fbc = fbc;
   if (userAgent) userData.client_user_agent = userAgent;
   if (clientIp) userData.client_ip_address = clientIp;
+  console.log('Meta CAPI user_data being sent:', JSON.stringify(userData));
   const res = await fetch(`https://graph.facebook.com/${apiVersion}/${process.env.META_PIXEL_ID}/events?access_token=${process.env.META_CAPI_ACCESS_TOKEN}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
