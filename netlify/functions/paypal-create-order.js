@@ -78,6 +78,7 @@ exports.handler = async (event) => {
     if (!res.ok) {
       return { statusCode: 500, body: JSON.stringify({ error: 'No se pudo crear la orden de PayPal', details: order }) };
     }
+    console.log('Attribution received from browser:', JSON.stringify({ fbp, fbc, userAgent: userAgent ? userAgent.slice(0, 40) : null, clientIp }));
     await saveAttribution(order.id, fbp, fbc, userAgent, clientIp);
     return { statusCode: 200, body: JSON.stringify({ id: order.id, total: total.toFixed(2) }) };
   } catch (err) {

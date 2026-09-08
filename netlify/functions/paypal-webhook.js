@@ -75,6 +75,7 @@ async function fetchAttribution(paypalOrderId) {
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200)),
     ]);
     const data = await res.json();
+    console.log('Attribution fetched from Sheet:', JSON.stringify(data));
     return { fbp: data.fbp || null, fbc: data.fbc || null, userAgent: data.userAgent || null, clientIp: data.clientIp || null };
   } catch (e) {
     return { fbp: null, fbc: null, userAgent: null, clientIp: null };
