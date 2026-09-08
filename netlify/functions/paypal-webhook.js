@@ -89,6 +89,7 @@ async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc, userAg
     return;
   }
   const apiVersion = process.env.META_GRAPH_API_VERSION || 'v25.0';
+  console.log('Meta CAPI target pixel/dataset ID:', process.env.META_PIXEL_ID, '| API version:', apiVersion);
   const userData = {};
   if (fbp) userData.fbp = fbp;
   if (fbc) userData.fbc = fbc;
