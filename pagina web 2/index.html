@@ -727,7 +727,7 @@ class Component extends DCLogic {
       const m = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
       return m ? decodeURIComponent(m[1]) : null;
     };
-    return { fbp: get('_fbp'), fbc: get('_fbc') };
+    return { fbp: get('_fbp'), fbc: get('_fbc'), userAgent: navigator.userAgent };
   };
 
   renderPaypalButtons = (el, retries) => {
@@ -744,7 +744,7 @@ class Component extends DCLogic {
     el.dataset.rendered = '1';
     window.paypal.Buttons({
       createOrder: () => this.getGAIdentifiers().then(({ clientId, sessionId }) => {
-        const { fbp, fbc } = this.getMetaCookies();
+        const { fbp, fbc, userAgent } = this.getMetaCookies();
         return fetch('/.netlify/functions/paypal-create-order', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -758,6 +758,7 @@ class Component extends DCLogic {
             gaSessionId: sessionId,
             fbp,
             fbc,
+            userAgent,
           }),
         });
       }).then(r => r.json()).then(d => {
