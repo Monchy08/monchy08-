@@ -72,12 +72,13 @@ async function fetchAttribution(paypalOrderId) {
     const url = `${process.env.SHEETS_WEBHOOK_URL}?action=get_attribution&paypalOrderId=${encodeURIComponent(paypalOrderId)}&secret=${encodeURIComponent(process.env.SHEETS_SECRET || '')}`;
     const res = await Promise.race([
       fetch(url),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000)),
     ]);
     const data = await res.json();
     console.log('Attribution fetched from Sheet:', JSON.stringify(data));
     return { fbp: data.fbp || null, fbc: data.fbc || null, userAgent: data.userAgent || null, clientIp: data.clientIp || null };
   } catch (e) {
+    console.log('Attribution fetch failed:', e.message);
     return { fbp: null, fbc: null, userAgent: null, clientIp: null };
   }
 }
