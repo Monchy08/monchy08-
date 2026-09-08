@@ -67,7 +67,7 @@ async function sendPurchaseToGA4({ captureId, value, currency, doll, size, qty, 
 // Recupera fbp/fbc guardados al crear la orden. Nunca debe bloquear el procesamiento del webhook:
 // timeout corto + catch silencioso — si falla, Purchase se envía igual sin esos campos.
 async function fetchAttribution(paypalOrderId) {
-  if (!process.env.SHEETS_WEBHOOK_URL || !paypalOrderId) return { fbp: null, fbc: null };
+  if (!process.env.SHEETS_WEBHOOK_URL || !paypalOrderId) return { fbp: null, fbc: null, userAgent: null };
   try {
     const url = `${process.env.SHEETS_WEBHOOK_URL}?action=get_attribution&paypalOrderId=${encodeURIComponent(paypalOrderId)}&secret=${encodeURIComponent(process.env.SHEETS_SECRET || '')}`;
     const res = await Promise.race([
@@ -75,15 +75,15 @@ async function fetchAttribution(paypalOrderId) {
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200)),
     ]);
     const data = await res.json();
-    return { fbp: data.fbp || null, fbc: data.fbc || null };
+    return { fbp: data.fbp || null, fbc: data.fbc || null, userAgent: data.userAgent || null };
   } catch (e) {
-    return { fbp: null, fbc: null };
+    return { fbp: null, fbc: null, userAgent: null };
   }
 }
 
 // Envía Purchase a Meta Conversions API — solo tras verificar la firma del webhook y confirmar
 // PAYMENT.CAPTURE.COMPLETED. Nunca se dispara Purchase desde el navegador.
-async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc }) {
+async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc, userAgent }) {
   if (!process.env.META_PIXEL_ID || !process.env.META_CAPI_ACCESS_TOKEN) {
     console.log('Meta CAPI skipped: missing META_PIXEL_ID or META_CAPI_ACCESS_TOKEN env vars');
     return;
@@ -92,6 +92,7 @@ async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc }) {
   const userData = {};
   if (fbp) userData.fbp = fbp;
   if (fbc) userData.fbc = fbc;
+  if (userAgent) userData.client_user_agent = userAgent;
   const res = await fetch(`https://graph.facebook.com/${apiVersion}/${process.env.META_PIXEL_ID}/events?access_token=${process.env.META_CAPI_ACCESS_TOKEN}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -187,13 +188,14 @@ exports.handler = async (event) => {
         sessionId: config.sessionId,
       });
       const paypalOrderId = resource.supplementary_data?.related_ids?.order_id || '';
-      const { fbp, fbc } = await fetchAttribution(paypalOrderId);
+      const { fbp, fbc, userAgent } = await fetchAttribution(paypalOrderId);
       await sendPurchaseToMeta({
         captureId: resource.id,
         value: resource.amount?.value || 0,
         currency: resource.amount?.currency_code || 'USD',
         fbp,
         fbc,
+        userAgent,
       });
     }
 
