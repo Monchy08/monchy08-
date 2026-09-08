@@ -16,14 +16,14 @@ async function getAccessToken() {
 
 // Guarda fbp/fbc en la pestaña "Atribución temporal" del Sheet, indexado por el PayPal Order ID.
 // Nunca debe bloquear ni fallar la creación de la orden: timeout corto + catch silencioso.
-async function saveAttribution(paypalOrderId, fbp, fbc, userAgent) {
-  if (!process.env.SHEETS_WEBHOOK_URL || (!fbp && !fbc && !userAgent)) return;
+async function saveAttribution(paypalOrderId, fbp, fbc, userAgent, clientIp) {
+  if (!process.env.SHEETS_WEBHOOK_URL || (!fbp && !fbc && !userAgent && !clientIp)) return;
   try {
     await Promise.race([
       fetch(process.env.SHEETS_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: process.env.SHEETS_SECRET, action: 'save_attribution', paypalOrderId, fbp: fbp || '', fbc: fbc || '', userAgent: userAgent || '' }),
+        body: JSON.stringify({ secret: process.env.SHEETS_SECRET, action: 'save_attribution', paypalOrderId, fbp: fbp || '', fbc: fbc || '', userAgent: userAgent || '', clientIp: clientIp || '' }),
       }),
       new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200)),
     ]);
@@ -59,6 +59,7 @@ exports.handler = async (event) => {
 
     const token = await getAccessToken();
     const base = PAYPAL_API(process.env.PAYPAL_ENV || 'sandbox');
+    const clientIp = event.headers['x-nf-client-connection-ip'] || event.headers['client-ip'] || (event.headers['x-forwarded-for'] || '').split(',')[0].trim();
     const res = await fetch(`${base}/v2/checkout/orders`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -77,7 +78,7 @@ exports.handler = async (event) => {
     if (!res.ok) {
       return { statusCode: 500, body: JSON.stringify({ error: 'No se pudo crear la orden de PayPal', details: order }) };
     }
-    await saveAttribution(order.id, fbp, fbc, userAgent);
+    await saveAttribution(order.id, fbp, fbc, userAgent, clientIp);
     return { statusCode: 200, body: JSON.stringify({ id: order.id, total: total.toFixed(2) }) };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
