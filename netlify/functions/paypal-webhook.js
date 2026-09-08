@@ -144,6 +144,7 @@ exports.handler = async (event) => {
     }
 
     const eventType = webhookEvent.event_type;
+    console.log('Webhook event_type received:', eventType);
     const resource = webhookEvent.resource || {};
     const statusMap = {
       'PAYMENT.CAPTURE.COMPLETED': 'COMPLETADO',
