@@ -76,6 +76,7 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
       .hero-sub { font-size: 16px !important; }
       .hero-cats { font-size: 12.5px !important; margin-bottom: 20px !important; }
       .flagship-tag { font-size: 16px !important; }
+      .config-grid { grid-template-columns: 1fr !important; }
     }
   </style>
 </helmet>
@@ -139,115 +140,6 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
     </div>
   </sc-if>
 
-  <sc-if value="{{ tshirtConfigOpen }}" hint-placeholder-val="{{ false }}">
-    <div onClick="{{ closeTshirtConfig }}" style="position:fixed; inset:0; background:rgba(58,30,40,0.5); z-index:80;"></div>
-    <div style="position:fixed; inset:0; z-index:81; display:flex; align-items:center; justify-content:center; padding:16px;">
-      <div style="background:#fff; border-radius:24px; max-width:640px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 40px 80px rgba(58,30,40,0.35); padding:26px 22px 28px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-          <span style="font-family:'Playfair Display',serif; font-weight:700; font-size:19px; color:#c2185b;">Configura tu T-Shirt</span>
-          <button onClick="{{ closeTshirtConfig }}" style="background:none; border:none; font-size:22px; color:#4a2c3a; cursor:pointer;">✕</button>
-        </div>
-        <p style="font-size:12.5px; font-weight:700; color:#b8863c; letter-spacing:1px; margin:0 0 20px;">PASO {{ tsStep }} DE 6</p>
-
-        <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
-          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Elige tu muñeca</h3>
-          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(96px,1fr)); gap:12px; margin-bottom:8px;">
-            <sc-for list="{{ dolls }}" as="doll" hint-placeholder-count="3">
-              <button onClick="{{ selectDollHandler }}" data-doll-id="{{ doll.id }}" style="position:relative; padding:0; border-radius:16px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ doll.borderStyle }}">
-                <image-slot id="{{ doll.slotId }}" placeholder="{{ doll.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
-                <sc-if value="{{ doll.selected }}" hint-placeholder-val="{{ false }}">
-                  <span style="position:absolute; top:6px; right:6px; background:#c2185b; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;">✓</span>
-                </sc-if>
-              </button>
-            </sc-for>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
-          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Elige la talla de la T-Shirt</h3>
-          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
-            <sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5">
-              <button onClick="{{ selectSizeHandler }}" data-size="{{ sz.value }}" style="min-width:56px; min-height:48px; padding:0 16px; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; background:#fff; color:#4a2c3a; {{ sz.borderStyle }}">{{ sz.value }}</button>
-            </sc-for>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
-          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 6px;">Elige tus 3 looks incluidos</h3>
-          <p style="font-size:14px; font-weight:700; color:#c2185b; margin:0 0 14px;">Looks seleccionados: {{ tsIncludedCount }} de 3</p>
-          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap:10px; margin-bottom:8px;">
-            <sc-for list="{{ looksIncludedView }}" as="look" hint-placeholder-count="8">
-              <button onClick="{{ toggleIncludedHandler }}" data-look-id="{{ look.id }}" style="position:relative; padding:0; border-radius:14px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ look.borderStyle }}">
-                <image-slot id="{{ look.slotId }}" placeholder="{{ look.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
-                <sc-if value="{{ look.selected }}" hint-placeholder-val="{{ false }}">
-                  <span style="position:absolute; top:5px; right:5px; background:#c2185b; color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">{{ look.order }}</span>
-                </sc-if>
-              </button>
-            </sc-for>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{ isStep4 }}" hint-placeholder-val="{{ false }}">
-          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 6px;">¿Quieres más looks?</h3>
-          <p style="font-size:14px; color:#6b4a58; margin:0 0 14px;">Agrega looks adicionales por <strong style="color:#c2185b;">$10.00 c/u</strong>. Seleccionados: {{ tsExtraCount }}</p>
-          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap:10px; margin-bottom:8px;">
-            <sc-for list="{{ looksExtraView }}" as="look" hint-placeholder-count="5">
-              <button onClick="{{ toggleExtraHandler }}" data-look-id="{{ look.id }}" style="position:relative; padding:0; border-radius:14px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ look.borderStyle }}">
-                <image-slot id="{{ look.slotId }}" placeholder="{{ look.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
-                <sc-if value="{{ look.selected }}" hint-placeholder-val="{{ false }}">
-                  <span style="position:absolute; top:5px; right:5px; background:#c2185b; color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">+$10</span>
-                </sc-if>
-              </button>
-            </sc-for>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{ isStep5 }}" hint-placeholder-val="{{ false }}">
-          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 18px;">Cantidad</h3>
-          <div style="display:flex; align-items:center; gap:18px; margin-bottom:8px;">
-            <button onClick="{{ decQty }}" style="width:48px; height:48px; border-radius:50%; border:2px solid #c2185b; color:#c2185b; background:#fff; font-size:22px; font-weight:700; cursor:pointer;">−</button>
-            <span style="font-size:22px; font-weight:700; color:#4a2c3a; min-width:30px; text-align:center;">{{ tsQty }}</span>
-            <button onClick="{{ incQty }}" style="width:48px; height:48px; border-radius:50%; border:2px solid #c2185b; color:#c2185b; background:#fff; font-size:22px; font-weight:700; cursor:pointer;">+</button>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{ isStep6 }}" hint-placeholder-val="{{ false }}">
-          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Resumen</h3>
-          <div style="background:#fdf6f1; border-radius:16px; padding:18px 20px; margin-bottom:8px; font-size:14px; color:#4a2c3a; line-height:1.8;">
-            <div>Muñeca: <strong>{{ tsDollLabel }}</strong></div>
-            <div>Talla: <strong>{{ tsSize }}</strong></div>
-            <div>Looks incluidos: <strong>{{ tsIncludedLabels }}</strong></div>
-            <sc-if value="{{ tsExtraLabels }}" hint-placeholder-val="{{ false }}">
-              <div>Looks adicionales: <strong>{{ tsExtraLabels }}</strong></div>
-            </sc-if>
-            <div>Cantidad: <strong>{{ tsQty }}</strong></div>
-          </div>
-          <div style="background:#fdf6f1; border-radius:16px; padding:18px 20px; margin-top:10px; font-size:14px; color:#4a2c3a; line-height:1.9;">
-            <div>Precio base T-Shirt + 3 looks: <strong>$43.00</strong></div>
-            <sc-if value="{{ tsExtraCount }}" hint-placeholder-val="{{ false }}">
-              <div>{{ tsExtraNounLabel }}: <strong>+${{ tsExtraAmountLabel }}</strong></div>
-            </sc-if>
-            <div>Precio unitario configurado: <strong>${{ tsUnitPrice }}</strong></div>
-            <div>Cantidad: <strong>{{ tsQty }}</strong></div>
-            <div style="margin-top:6px; padding-top:8px; border-top:1px solid #f2d9e2; font-size:16px; font-weight:700; color:#c2185b;">Subtotal: ${{ tsTotal }}</div>
-          </div>
-        </sc-if>
-
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:22px; padding-top:18px; border-top:1px solid #f2d9e2;">
-          <sc-if value="{{ tsStep }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ goBack }}" style="visibility:{{ backVisibility }}; background:none; border:none; color:#8a6b78; font-weight:700; font-size:14px; cursor:pointer;">← Atrás</button>
-          </sc-if>
-          <sc-if value="{{ isStep6 }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ addConfiguredToCart }}" style="background:#c2185b; color:#fff; border:none; padding:14px 26px; border-radius:26px; font-weight:700; font-size:15px; cursor:pointer;">AGREGAR AL CARRITO — ${{ tsTotal }}</button>
-          </sc-if>
-          <sc-if value="{{ isNotStep6 }}" hint-placeholder-val="{{ true }}">
-            <button onClick="{{ goNext }}" disabled="{{ nextDisabled }}" style="background:{{ nextBg }}; color:#fff; border:none; padding:14px 26px; border-radius:26px; font-weight:700; font-size:15px; cursor:pointer;">Continuar →</button>
-          </sc-if>
-        </div>
-      </div>
-    </div>
-  </sc-if>
-
   <sc-if value="{{ cartOpen }}" hint-placeholder-val="{{ false }}">
     <div onClick="{{ toggleCart }}" style="position:fixed; inset:0; background:rgba(58,30,40,0.4); z-index:70;"></div>
     <div style="position:fixed; top:0; right:0; height:100%; width:min(420px, 92vw); background:#fff; z-index:71; box-shadow:-20px 0 50px rgba(58,30,40,0.25); display:flex; flex-direction:column;">
@@ -266,10 +158,14 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
               <sc-if value="{{ item.priced }}" hint-placeholder-val="{{ false }}">
                 <div style="font-size:13px; color:#6b4a58; margin-top:6px; line-height:1.7;">
                   <div>Muñeca: <strong>{{ item.dollLabel }}</strong></div>
+                  <div>Color de T-Shirt: <strong>{{ item.colorLabel }}</strong></div>
                   <div>Talla: <strong>{{ item.size }}</strong></div>
                   <div>Looks incluidos: <strong>{{ item.includedLabels }}</strong></div>
                   <sc-if value="{{ item.extraLabels }}" hint-placeholder-val="{{ false }}">
                     <div>Looks adicionales: <strong>{{ item.extraLabels }}</strong></div>
+                  </sc-if>
+                  <sc-if value="{{ item.customName }}" hint-placeholder-val="{{ false }}">
+                    <div>Nombre personalizado: <strong>{{ item.customName }}</strong></div>
                   </sc-if>
                   <div style="margin-top:6px; padding-top:6px; border-top:1px dashed #f2d9e2;">Precio base T-Shirt + 3 looks: <strong>${{ item.basePriceLabel }}</strong></div>
                   <sc-if value="{{ item.extraCount }}" hint-placeholder-val="{{ false }}">
@@ -347,42 +243,156 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
   </section>
 
   <!-- PRODUCTO PRINCIPAL -->
-  <section class="sec-pad" style="padding: 0 5vw 90px; background: radial-gradient(circle at 85% 10%, #fce4ec 0%, #fdf6f1 55%);">
+  <section id="producto-estrella" class="sec-pad" style="padding: 0 5vw 90px; background: radial-gradient(circle at 85% 10%, #fce4ec 0%, #fdf6f1 55%); scroll-margin-top:80px;">
     <div style="max-width:1200px; margin:0 auto; text-align:center;">
       <p style="color:#b8863c; font-weight:700; letter-spacing:2px; font-size:14px; margin:0 0 10px;">NUESTRO PRODUCTO ESTRELLA</p>
       <h2 class="flagship-h2" style="font-family:'Playfair Display', serif; font-size:38px; color:#4a2c3a; margin:0 0 12px; font-weight:700;">T-Shirts con ropa y pelo intercambiables para niñas</h2>
       <p class="flagship-tag" style="font-size:18px; font-weight:700; color:#c2185b; margin:0 0 10px;">Una T-Shirt. Muchos estilos. Mucha imaginación.</p>
       <p style="font-size:16px; line-height:1.6; color:#6b4a58; max-width:640px; margin:0 auto 28px;">Tu niña puede cambiar el cabello y la ropa de su muñeca para crear diferentes looks una y otra vez.</p>
-      <div class="flagship-grid" style="display:grid; grid-template-columns: 1.4fr 1fr; gap:24px; align-items:stretch; height:560px; overflow:hidden;">
-        <div class="flagship-media" style="width:100%; height:100%; min-height:0; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-          <img src="assets/tshirt-collection-banner.jpg" alt="Colección T-Shirts con ropa y pelo intercambiables para niñas" style="width:100%; height:100%; object-fit:contain; display:block;">
+      <div class="config-grid" style="display:grid; grid-template-columns: 0.85fr 1.15fr; gap:32px; align-items:start; text-align:left;">
+        <div>
+          <div class="flagship-media" style="width:100%; height:300px; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); background:#fce4ec; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+            <video src="assets/doll-video.mp4" autoplay="true" loop="true" muted="true" playsInline="true" ref="{{ videoRef }}" style="height:100%; width:auto; max-width:100%; object-fit:contain; display:block;"></video>
+          </div>
+          <div class="flagship-media" style="width:100%; height:220px; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; margin-top:16px;">
+            <img src="assets/tshirt-collection-banner.jpg" alt="Colección T-Shirts con ropa y pelo intercambiables para niñas" style="width:100%; height:100%; object-fit:contain; display:block;">
+          </div>
+          <ul class="flagship-checklist" style="list-style:none; display:flex; flex-wrap:wrap; gap:10px 20px; margin:24px 0 0; padding:0;">
+            <li style="font-size:14px; font-weight:600; color:#4a2c3a;">✓ Ropa intercambiable</li>
+            <li style="font-size:14px; font-weight:600; color:#4a2c3a;">✓ Cabello intercambiable</li>
+            <li style="font-size:14px; font-weight:600; color:#4a2c3a;">✓ Diseños exclusivos</li>
+            <li style="font-size:14px; font-weight:600; color:#4a2c3a;">✓ Accesorios hechos a mano</li>
+          </ul>
         </div>
-        <div class="flagship-media" style="width:100%; height:100%; min-height:0; border-radius:22px; box-shadow:0 30px 60px -24px rgba(194,24,91,0.35); background:#fce4ec; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-          <video src="assets/doll-video.mp4" autoplay="true" loop="true" muted="true" playsInline="true" ref="{{ videoRef }}" style="height:100%; width:auto; max-width:100%; object-fit:contain; display:block;"></video>
+        <div style="background:#fff; border-radius:22px; padding:28px 26px; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25);">
+          <h3 style="font-family:'Playfair Display', serif; font-size:23px; color:#4a2c3a; margin:0 0 10px; font-weight:700;">T-Shirts con ropa y pelo intercambiables para niñas</h3>
+          <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:18px;">
+            <span style="font-family:'Playfair Display', serif; font-size:30px; font-weight:700; color:#c2185b;">$43.00</span>
+            <span style="font-size:13.5px; font-weight:700; color:#4a2c3a;">Incluye T-Shirt + muñeca sublimada + 3 looks completos</span>
+          </div>
+          <p style="font-size:12.5px; font-weight:700; color:#b8863c; letter-spacing:1px; margin:0 0 18px;">PASO {{ tsStep }} DE 8</p>
+        <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Elige el tono de piel de tu muñeca</h3>
+          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:8px;">
+            <sc-for list="{{ dolls }}" as="doll" hint-placeholder-count="3">
+              <button onClick="{{ selectDollHandler }}" data-doll-id="{{ doll.id }}" style="padding:0; border-radius:16px; overflow:hidden; cursor:pointer; background:#fdf6f1; display:flex; flex-direction:column; {{ doll.borderStyle }}">
+                <image-slot id="{{ doll.slotId }}" placeholder="{{ doll.placeholder }}" shape="rect" fit="contain" style="width:100%; aspect-ratio:3/5.2;"></image-slot>
+                <span style="padding:8px 4px; font-size:13px; font-weight:700; color:{{ doll.labelColor }}; text-align:center; background:#fff;">{{ doll.label }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Elige el color de la T-Shirt</h3>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ tshirtColors }}" as="color" hint-placeholder-count="10">
+              <button onClick="{{ selectColorHandler }}" data-color-id="{{ color.id }}" style="padding:10px 6px; border-radius:12px; cursor:pointer; background:#fff; display:flex; flex-direction:column; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(58,30,40,0.06); {{ color.borderStyle }}">
+                <span style="width:100%; height:48px; border-radius:8px; display:block; background:{{ color.hex }}; border:1px solid #e5dede;"></span>
+                <span style="font-size:12px; font-weight:700; color:{{ color.labelColor }};">{{ color.label }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Elige la talla de la T-Shirt</h3>
+          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ sizes }}" as="sz" hint-placeholder-count="5">
+              <button onClick="{{ selectSizeHandler }}" data-size="{{ sz.value }}" style="min-width:56px; min-height:48px; padding:0 16px; border-radius:14px; font-weight:700; font-size:15px; cursor:pointer; background:#fff; color:#4a2c3a; {{ sz.borderStyle }}">{{ sz.value }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep4 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 6px;">Elige tus 3 looks incluidos</h3>
+          <p style="font-size:14px; font-weight:700; color:#c2185b; margin:0 0 14px;">Looks seleccionados: {{ tsIncludedCount }} de 3</p>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ looksIncludedView }}" as="look" hint-placeholder-count="8">
+              <button onClick="{{ toggleIncludedHandler }}" data-look-id="{{ look.id }}" style="position:relative; padding:0; border-radius:14px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ look.borderStyle }}">
+                <image-slot id="{{ look.slotId }}" placeholder="{{ look.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
+                <sc-if value="{{ look.selected }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute; top:5px; right:5px; background:#c2185b; color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">{{ look.order }}</span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep5 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 6px;">¿Quieres más looks?</h3>
+          <p style="font-size:14px; color:#6b4a58; margin:0 0 14px;">Agrega looks adicionales por <strong style="color:#c2185b;">$10.00 c/u</strong>. Seleccionados: {{ tsExtraCount }}</p>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(84px,1fr)); gap:10px; margin-bottom:8px;">
+            <sc-for list="{{ looksExtraView }}" as="look" hint-placeholder-count="5">
+              <button onClick="{{ toggleExtraHandler }}" data-look-id="{{ look.id }}" style="position:relative; padding:0; border-radius:14px; overflow:hidden; cursor:pointer; aspect-ratio:1; background:none; {{ look.borderStyle }}">
+                <image-slot id="{{ look.slotId }}" placeholder="{{ look.placeholder }}" shape="rect" style="width:100%; height:100%;"></image-slot>
+                <sc-if value="{{ look.selected }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute; top:5px; right:5px; background:#c2185b; color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">+$10</span>
+                </sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep6 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 6px;">Nombre personalizado (opcional)</h3>
+          <p style="font-size:13.5px; color:#6b4a58; margin:0 0 14px;">Si lo dejas en blanco, la T-Shirt no llevará nombre impreso.</p>
+          <input type="text" value="{{ tsName }}" onChange="{{ setNameHandler }}" maxlength="20" placeholder="ej. Olivia" style="width:100%; padding:14px 16px; border:2px solid #e9b7cb; border-radius:14px; font-size:15px; font-family:'Quicksand',sans-serif; color:#4a2c3a; box-sizing:border-box;">
+        </sc-if>
+
+        <sc-if value="{{ isStep7 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 18px;">Cantidad</h3>
+          <div style="display:flex; align-items:center; gap:18px; margin-bottom:8px;">
+            <button onClick="{{ decQty }}" style="width:48px; height:48px; border-radius:50%; border:2px solid #c2185b; color:#c2185b; background:#fff; font-size:22px; font-weight:700; cursor:pointer;">−</button>
+            <span style="font-size:22px; font-weight:700; color:#4a2c3a; min-width:30px; text-align:center;">{{ tsQty }}</span>
+            <button onClick="{{ incQty }}" style="width:48px; height:48px; border-radius:50%; border:2px solid #c2185b; color:#c2185b; background:#fff; font-size:22px; font-weight:700; cursor:pointer;">+</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStep8 }}" hint-placeholder-val="{{ false }}">
+          <h3 style="font-family:'Playfair Display',serif; font-size:19px; color:#4a2c3a; margin:0 0 14px;">Resumen</h3>
+          <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+            <image-slot id="{{ summaryDollSlotId }}" placeholder="{{ summaryDollPlaceholder }}" shape="rect" style="width:64px; height:64px; border-radius:12px; flex-shrink:0;"></image-slot>
+            <sc-for list="{{ summaryLookThumbs }}" as="thumb" hint-placeholder-count="3">
+              <image-slot id="{{ thumb.slotId }}" placeholder="{{ thumb.placeholder }}" shape="rect" style="width:64px; height:64px; border-radius:12px; flex-shrink:0;"></image-slot>
+            </sc-for>
+          </div>
+          <div style="background:#fdf6f1; border-radius:16px; padding:18px 20px; margin-bottom:8px; font-size:14px; color:#4a2c3a; line-height:1.8;">
+            <div>Muñeca: <strong>{{ tsDollLabel }}</strong></div>
+            <div>Color de T-Shirt: <strong>{{ tsColorLabel }}</strong></div>
+            <div>Talla: <strong>{{ tsSize }}</strong></div>
+            <div>Looks incluidos: <strong>{{ tsIncludedLabels }}</strong></div>
+            <sc-if value="{{ tsExtraLabels }}" hint-placeholder-val="{{ false }}">
+              <div>Looks adicionales: <strong>{{ tsExtraLabels }}</strong></div>
+            </sc-if>
+            <sc-if value="{{ tsName }}" hint-placeholder-val="{{ false }}">
+              <div>Nombre personalizado: <strong>{{ tsName }}</strong></div>
+            </sc-if>
+            <div>Cantidad: <strong>{{ tsQty }}</strong></div>
+          </div>
+          <div style="background:#fdf6f1; border-radius:16px; padding:18px 20px; margin-top:10px; font-size:14px; color:#4a2c3a; line-height:1.9;">
+            <div>Precio base T-Shirt + 3 looks: <strong>$43.00</strong></div>
+            <sc-if value="{{ tsExtraCount }}" hint-placeholder-val="{{ false }}">
+              <div>{{ tsExtraNounLabel }}: <strong>+${{ tsExtraAmountLabel }}</strong></div>
+            </sc-if>
+            <div>Precio unitario configurado: <strong>${{ tsUnitPrice }}</strong></div>
+            <div>Cantidad: <strong>{{ tsQty }}</strong></div>
+            <div style="margin-top:6px; padding-top:8px; border-top:1px solid #f2d9e2; font-size:16px; font-weight:700; color:#c2185b;">Subtotal: ${{ tsTotal }}</div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:22px; padding-top:18px; border-top:1px solid #f2d9e2;">
+          <sc-if value="{{ tsStep }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ goBack }}" style="visibility:{{ backVisibility }}; background:none; border:none; color:#8a6b78; font-weight:700; font-size:14px; cursor:pointer;">← Atrás</button>
+          </sc-if>
+          <sc-if value="{{ isStep8 }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ addConfiguredToCart }}" style="background:#c2185b; color:#fff; border:none; padding:14px 26px; border-radius:26px; font-weight:700; font-size:15px; cursor:pointer;">AGREGAR AL CARRITO — ${{ tsTotal }}</button>
+          </sc-if>
+          <sc-if value="{{ isNotStep8 }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ goNext }}" disabled="{{ nextDisabled }}" style="background:{{ nextBg }}; color:#fff; border:none; padding:14px 26px; border-radius:26px; font-weight:700; font-size:15px; cursor:pointer;">Continuar →</button>
+          </sc-if>
         </div>
-      </div>
-      <ul class="flagship-checklist" style="list-style:none; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 24px; margin:28px 0 0; padding:0;">
-        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Ropa intercambiable</li>
-        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Cabello intercambiable</li>
-        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Diseños exclusivos</li>
-        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Sets adicionales disponibles</li>
-        <li style="font-size:15px; font-weight:600; color:#4a2c3a;">✓ Accesorios hechos a mano</li>
-      </ul>
-      <div style="max-width:560px; margin:28px auto 0; background:#fff; border-radius:20px; padding:26px 28px; box-shadow:0 20px 40px -26px rgba(194,24,91,0.25); text-align:left;">
-        <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
-          <span style="font-family:'Playfair Display', serif; font-size:34px; font-weight:700; color:#c2185b;">$43.00</span>
-          <span style="font-size:15px; font-weight:700; color:#4a2c3a;">Incluye T-Shirt + 3 looks completos</span>
         </div>
-        <p style="font-size:15px; color:#6b4a58; margin:0 0 4px;">✓ 1 T-Shirt con la muñeca sublimada</p>
-        <p style="font-size:15px; color:#6b4a58; margin:0 0 18px;">✓ 3 looks completos con ropa + cabello intercambiables (el look inicial + 2 sets adicionales)</p>
-        <div style="border-top:1px solid #f2d9e2; padding-top:16px;">
-          <p style="font-size:16px; font-weight:700; color:#4a2c3a; margin:0 0 4px;">¿Quieres más looks?</p>
-          <p style="font-size:14px; color:#6b4a58; margin:0;">Agrega sets adicionales de ropa + cabello por <strong style="color:#c2185b;">$10.00 c/u</strong>.</p>
-        </div>
-      </div>
-      <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:26px;">
-        <button onClick="{{ openTshirtConfig }}" style="background:#c2185b; color:#fff; border:none; padding:14px 32px; border-radius:30px; font-weight:700; font-size:16px; letter-spacing:0.5px; cursor:pointer;" style-hover="background:#921249;">VER T-SHIRTS INTERCAMBIABLES</button>
-        <a href="#productos" style="border:2px solid #c2185b; color:#c2185b; padding:12px 30px; border-radius:30px; font-weight:700; font-size:15px;" style-hover="background:#fce4ec;">Ver todos los productos</a>
       </div>
     </div>
   </section>
@@ -482,7 +492,7 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
           </div>
                     <p style="font-size:15px; font-weight:700; color:#c2185b; margin:0 0 12px;">$43.00 <span style="font-size:13px; color:#8a6b78; font-weight:600;">· incluye 3 looks completos</span></p>
           <div style="display:flex; gap:14px; align-items:center;">
-            <button onClick="{{ openTshirtConfig }}" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;" style-hover="background:#921249;">Configurar y comprar</button>
+            <a href="#producto-estrella" style="background:#c2185b; color:#fff; border:none; padding:10px 20px; border-radius:24px; font-weight:700; font-size:14px; text-decoration:none; display:inline-block;" style-hover="background:#921249;">Configurar y comprar</a>
             <a href="./tshirts-intercambiables-para-ninas.dc.html" style="font-size:13px; font-weight:700;">Ver detalles →</a>
           </div>
         </div>
@@ -642,7 +652,7 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { menuOpen: false, cartOpen: false, cart: [], payAmount: '', tshirtConfigOpen: false, tsStep: 1, tsDoll: null, tsSize: null, tsIncluded: [], tsExtra: [], tsQty: 1, paidConfirmation: null, paypalError: '' };
+  state = { menuOpen: false, cartOpen: false, cart: [], payAmount: '', tsStep: 1, tsDoll: null, tsColor: null, tsSize: null, tsIncluded: [], tsExtra: [], tsName: '', tsQty: 1, paidConfirmation: null, paypalError: '' };
   videoRef = React.createRef();
   _paypalRendered = false;
 
@@ -742,7 +752,7 @@ class Component extends DCLogic {
 
   componentDidUpdate() {
     const s = this.state;
-    const anyModalOpen = s.cartOpen || s.tshirtConfigOpen || s.menuOpen || !!s.paidConfirmation;
+    const anyModalOpen = s.cartOpen || s.menuOpen || !!s.paidConfirmation;
     document.body.style.overflow = anyModalOpen ? 'hidden' : '';
 
     const hasPriced = s.cart.some(c => c.priced);
@@ -764,17 +774,29 @@ class Component extends DCLogic {
     if (!s.cartOpen) this._checkoutFired = false;
   }
   dollsData = [
-    { id: 'doll1', slotId: 'cfg-doll-1', placeholder: 'Foto muñeca 1' },
-    { id: 'doll2', slotId: 'cfg-doll-2', placeholder: 'Foto muñeca 2' },
-    { id: 'doll3', slotId: 'cfg-doll-3', placeholder: 'Foto muñeca 3' },
+    { id: 'doll1', slotId: 'cfg-doll-1', placeholder: 'Foto muñeca 1', label: 'Piel clara' },
+    { id: 'doll2', slotId: 'cfg-doll-2', placeholder: 'Foto muñeca 2', label: 'Piel morena' },
+    { id: 'doll3', slotId: 'cfg-doll-3', placeholder: 'Foto muñeca 3', label: 'Piel oscura' },
   ];
   looksData = Array.from({ length: 8 }).map((_, i) => ({ id: 'look' + (i + 1), slotId: 'cfg-look-' + (i + 1), placeholder: 'Foto look ' + (i + 1) }));
   sizesData = ['3T', '4T', '5/6', '7/8', '10/12'];
+  colorsData = [
+    { id: 'rosa', label: 'Rosa', hex: '#f3a6c0' },
+    { id: 'blanco', label: 'Blanco', hex: '#ffffff' },
+    { id: 'negro', label: 'Negro', hex: '#1c1c1c' },
+    { id: 'lavanda', label: 'Lavanda', hex: '#c9b3e6' },
+    { id: 'menta', label: 'Verde menta', hex: '#a3d9b8' },
+    { id: 'celeste', label: 'Azul cielo', hex: '#a8cbe8' },
+    { id: 'amarillo', label: 'Amarillo', hex: '#f0cf5a' },
+    { id: 'naranja', label: 'Naranja', hex: '#e8935a' },
+    { id: 'rojo', label: 'Rojo', hex: '#c23b3b' },
+    { id: 'marino', label: 'Azul marino', hex: '#2e3652' },
+  ];
 
-  openTshirtConfig = () => this.setState({ tshirtConfigOpen: true, tsStep: 1, tsDoll: null, tsSize: null, tsIncluded: [], tsExtra: [], tsQty: 1 });
-  closeTshirtConfig = () => this.setState({ tshirtConfigOpen: false });
   selectDollHandler = (e) => this.setState({ tsDoll: e.currentTarget.dataset.dollId });
+  selectColorHandler = (e) => this.setState({ tsColor: e.currentTarget.dataset.colorId });
   selectSizeHandler = (e) => this.setState({ tsSize: e.currentTarget.dataset.size });
+  setNameHandler = (e) => this.setState({ tsName: e.target.value });
   toggleIncludedHandler = (e) => {
     const id = e.currentTarget.dataset.lookId;
     this.setState(s => {
@@ -791,16 +813,18 @@ class Component extends DCLogic {
   incQty = () => this.setState(s => ({ tsQty: s.tsQty + 1 }));
   goNext = () => this.setState(s => {
     if (s.tsStep === 1 && !s.tsDoll) return {};
-    if (s.tsStep === 2 && !s.tsSize) return {};
-    if (s.tsStep === 3 && s.tsIncluded.length !== 3) return {};
-    return { tsStep: Math.min(6, s.tsStep + 1) };
+    if (s.tsStep === 2 && !s.tsColor) return {};
+    if (s.tsStep === 3 && !s.tsSize) return {};
+    if (s.tsStep === 4 && s.tsIncluded.length !== 3) return {};
+    return { tsStep: Math.min(8, s.tsStep + 1) };
   });
   goBack = () => this.setState(s => ({ tsStep: Math.max(1, s.tsStep - 1) }));
 
   addConfiguredToCart = () => {
     const s = this.state;
     const lookLabel = (id) => 'L' + String(this.looksData.findIndex(l => l.id === id) + 1).padStart(2, '0');
-    const dollLabel = 'Muñeca ' + (this.dollsData.findIndex(d => d.id === s.tsDoll) + 1);
+    const dollLabel = (this.dollsData.find(d => d.id === s.tsDoll) || {}).label || '';
+    const colorLabel = (this.colorsData.find(c => c.id === s.tsColor) || {}).label || '';
     const includedLabels = s.tsIncluded.map(lookLabel).join(', ');
     const extraLabels = s.tsExtra.map(lookLabel).join(', ');
     const basePrice = 43;
@@ -813,7 +837,8 @@ class Component extends DCLogic {
       id: 'tshirt-' + Date.now(),
       name: 'T-Shirt intercambiable',
       priced: true,
-      dollLabel, size: s.tsSize, includedLabels, extraLabels,
+      dollLabel, colorLabel, size: s.tsSize, includedLabels, extraLabels,
+      customName: s.tsName || '',
       basePriceLabel: basePrice.toFixed(2),
       extraCount, extraAmountLabel: extraAmount.toFixed(2), extraNounLabel,
       qty: s.tsQty,
@@ -823,7 +848,7 @@ class Component extends DCLogic {
     this.setState(prev => ({
       cart: [...prev.cart, item],
       cartOpen: true,
-      tshirtConfigOpen: false,
+      tsStep: 1, tsDoll: null, tsColor: null, tsSize: null, tsIncluded: [], tsExtra: [], tsName: '', tsQty: 1,
     }));
     if (window.gtag) {
       window.gtag('event', 'add_to_cart', {
@@ -864,7 +889,8 @@ class Component extends DCLogic {
     const onlyPriced = hasPriced && !hasQuoteInCart;
     const onlyQuote = hasQuoteInCart && !hasPriced;
     const mixedCart = hasPriced && hasQuoteInCart;
-    const dolls = this.dollsData.map(d => ({ ...d, selected: s.tsDoll === d.id, borderStyle: s.tsDoll === d.id ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;' }));
+    const dolls = this.dollsData.map(d => ({ ...d, selected: s.tsDoll === d.id, borderStyle: s.tsDoll === d.id ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;', labelColor: s.tsDoll === d.id ? '#c2185b' : '#4a2c3a' }));
+    const tshirtColors = this.colorsData.map(c => ({ ...c, selected: s.tsColor === c.id, borderStyle: s.tsColor === c.id ? 'border:2px solid #c2185b;' : 'border:1px solid #e9b7cb;', labelColor: s.tsColor === c.id ? '#c2185b' : '#4a2c3a' }));
     const sizes = this.sizesData.map(sz => ({ value: sz, borderStyle: s.tsSize === sz ? 'border:2px solid #c2185b; background:#fce4ec;' : 'border:2px solid #e9b7cb;' }));
     const looksIncludedView = this.looksData.map(l => ({ ...l, order: s.tsIncluded.indexOf(l.id) + 1, selected: s.tsIncluded.includes(l.id), borderStyle: s.tsIncluded.includes(l.id) ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;' }));
     const looksExtraView = this.looksData.filter(l => !s.tsIncluded.includes(l.id)).map(l => ({ ...l, selected: s.tsExtra.includes(l.id), borderStyle: s.tsExtra.includes(l.id) ? 'border:3px solid #c2185b;' : 'border:3px solid #f2d9e2;' }));
@@ -875,7 +901,9 @@ class Component extends DCLogic {
     const tsExtraLabels = s.tsExtra.map(lookLabelFn).join(', ');
     const tsExtraAmountLabel = (s.tsExtra.length * 10).toFixed(2);
     const tsExtraNounLabel = s.tsExtra.length + (s.tsExtra.length === 1 ? ' look adicional' : ' looks adicionales');
-    const nextDisabled = (s.tsStep === 1 && !s.tsDoll) || (s.tsStep === 2 && !s.tsSize) || (s.tsStep === 3 && s.tsIncluded.length !== 3);
+    const nextDisabled = (s.tsStep === 1 && !s.tsDoll) || (s.tsStep === 2 && !s.tsColor) || (s.tsStep === 3 && !s.tsSize) || (s.tsStep === 4 && s.tsIncluded.length !== 3);
+    const summaryDoll = this.dollsData.find(d => d.id === s.tsDoll) || {};
+    const summaryLookThumbs = s.tsIncluded.map(id => this.looksData.find(l => l.id === id)).filter(Boolean);
     return {
       menuOpen: this.state.menuOpen,
       toggleMenu: () => this.setState(s => ({ menuOpen: !s.menuOpen })),
@@ -893,19 +921,19 @@ class Component extends DCLogic {
       noCartItems: cart.length === 0,
       onlyPriced, onlyQuote, mixedCart,
       cartTitle: onlyPriced ? 'Mi carrito' : (mixedCart ? 'Mi pedido' : 'Mi cotización'),
-      tshirtConfigOpen: s.tshirtConfigOpen,
-      openTshirtConfig: this.openTshirtConfig,
-      closeTshirtConfig: this.closeTshirtConfig,
       tsStep: s.tsStep,
-      isStep1: s.tsStep === 1, isStep2: s.tsStep === 2, isStep3: s.tsStep === 3, isStep4: s.tsStep === 4, isStep5: s.tsStep === 5, isStep6: s.tsStep === 6,
-      isNotStep6: s.tsStep !== 6,
-      dolls, sizes, looksIncludedView, looksExtraView,
+      isStep1: s.tsStep === 1, isStep2: s.tsStep === 2, isStep3: s.tsStep === 3, isStep4: s.tsStep === 4, isStep5: s.tsStep === 5, isStep6: s.tsStep === 6, isStep7: s.tsStep === 7, isStep8: s.tsStep === 8,
+      isNotStep8: s.tsStep !== 8,
+      dolls, tshirtColors, sizes, looksIncludedView, looksExtraView,
       selectDollHandler: this.selectDollHandler,
+      selectColorHandler: this.selectColorHandler,
       selectSizeHandler: this.selectSizeHandler,
+      setNameHandler: this.setNameHandler,
       toggleIncludedHandler: this.toggleIncludedHandler,
       toggleExtraHandler: this.toggleExtraHandler,
       tsIncludedCount: s.tsIncluded.length,
       tsExtraCount: s.tsExtra.length,
+      tsName: s.tsName,
       tsQty: s.tsQty,
       decQty: this.decQty,
       incQty: this.incQty,
@@ -917,9 +945,13 @@ class Component extends DCLogic {
       tsUnitPrice: unitPrice.toFixed(2),
       tsTotal,
       addConfiguredToCart: this.addConfiguredToCart,
-      tsDollLabel: s.tsDoll ? ('Muñeca ' + (this.dollsData.findIndex(d => d.id === s.tsDoll) + 1)) : '',
+      tsDollLabel: s.tsDoll ? ((this.dollsData.find(d => d.id === s.tsDoll) || {}).label || '') : '',
+      tsColorLabel: (this.colorsData.find(c => c.id === s.tsColor) || {}).label || '',
       tsSize: s.tsSize,
       tsIncludedLabels, tsExtraLabels, tsExtraAmountLabel, tsExtraNounLabel,
+      summaryDollSlotId: summaryDoll.slotId || '',
+      summaryDollPlaceholder: summaryDoll.placeholder || '',
+      summaryLookThumbs,
       paidConfirmation: s.paidConfirmation,
       closePaidConfirmation: () => this.setState({ paidConfirmation: null }),
       paypalError: s.paypalError,
