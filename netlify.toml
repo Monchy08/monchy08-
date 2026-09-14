@@ -1,3 +1,8 @@
 [build]
   functions = "netlify/functions"
   publish = "pagina web 2"
+
+[[redirects]]
+  from = "/.image-slots.state.json"
+  to = "/image-slots-state.json"
+  status = 200
