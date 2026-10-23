@@ -1,103 +1,85 @@
-const PAYPAL_API = (env) => (env === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com');
+const { paypalBase, getAccessToken, sheetsCall, formatShipping, json } = require('../lib/shop');
 
-async function getAccessToken() {
-  const base = PAYPAL_API(process.env.PAYPAL_ENV || 'sandbox');
-  const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
-  const res = await fetch(`${base}/v1/oauth2/token`, {
+const STATUS = {
+  'PAYMENT.CAPTURE.COMPLETED': 'COMPLETADO',
+  'PAYMENT.CAPTURE.DENIED': 'DENEGADO',
+  'PAYMENT.CAPTURE.PENDING': 'PENDIENTE',
+};
+
+async function verifySignature(headers, webhookEvent) {
+  const token = await getAccessToken();
+  const res = await fetch(`${paypalBase()}/v1/notifications/verify-webhook-signature`, {
     method: 'POST',
-    headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'grant_type=client_credentials',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      auth_algo: headers['paypal-auth-algo'],
+      cert_url: headers['paypal-cert-url'],
+      transmission_id: headers['paypal-transmission-id'],
+      transmission_sig: headers['paypal-transmission-sig'],
+      transmission_time: headers['paypal-transmission-time'],
+      webhook_id: process.env.PAYPAL_WEBHOOK_ID,
+      webhook_event: webhookEvent,
+    }),
   });
   const data = await res.json();
-  return data.access_token;
+  return data.verification_status === 'SUCCESS';
 }
 
-function decodeCustomId(customId) {
-  const parts = (customId || '').split('|');
-  const [orderId, doll, size, included, extra, qty, clientId, sessionId] = parts;
-  const extraRaw = extra === 'none' ? '' : (extra || '');
-  return {
-    orderId: orderId || '',
-    doll: doll || '',
-    size: size || '',
-    includedLooks: (included || '').split('-').join(', '),
-    extraLooks: extraRaw.split('-').filter(Boolean).join(', '),
-    extraCount: extraRaw ? extraRaw.split('-').filter(Boolean).length : 0,
-    qty: qty || '1',
-    clientId: clientId && clientId !== 'none' ? clientId : null,
-    sessionId: sessionId && sessionId !== 'none' ? sessionId : null,
-  };
+// Lee la orden en PayPal (servidor a servidor) para obtener destinatario, dirección de envío y email del pagador.
+// El aviso de captura no incluye la dirección. Si PayPal no responde se lanza error → 500 → PayPal reintenta.
+async function getOrderDetails(paypalOrderId) {
+  if (!paypalOrderId) return { payerEmail: '', shipping: null };
+  const token = await getAccessToken();
+  const res = await fetch(`${paypalBase()}/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`, { headers: { Authorization: `Bearer ${token}` } });
+  if (res.status === 404) { console.error('Orden no encontrada en PayPal:', paypalOrderId); return { payerEmail: '', shipping: null }; }
+  if (!res.ok) throw new Error('No se pudo leer la orden de PayPal (' + res.status + ')');
+  const o = await res.json();
+  const pu = (o.purchase_units && o.purchase_units[0]) || {};
+  return { payerEmail: (o.payer && o.payer.email_address) || '', shipping: formatShipping(pu.shipping) };
 }
 
-// El Apps Script del Sheet también envía el correo de notificación (ver instrucción en chat).
-async function logToSheet(row) {
-  if (!process.env.SHEETS_WEBHOOK_URL) return;
-  await fetch(process.env.SHEETS_WEBHOOK_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ secret: process.env.SHEETS_SECRET, ...row }),
-  });
-}
+// GA4 Measurement Protocol. transaction_id = Capture ID → GA4 deduplica reintentos.
+// TRACKING_DISABLED=true (contexto de pruebas en Netlify) → no se envía nada a GA4 ni a Meta.
+const trackingOff = () => String(process.env.TRACKING_DISABLED || '').toLowerCase() === 'true';
 
-// Envía purchase a GA4 vía Measurement Protocol (server-side) — solo se llama tras verificar la firma
-// del webhook y confirmar PAYMENT.CAPTURE.COMPLETED. transaction_id = Capture ID de PayPal (único/idempotente),
-// así que reintentos del mismo webhook no duplican la transacción en GA4 (GA4 deduplica por transaction_id).
-// clientId/sessionId reales (del navegador que compró) atribuyen la compra a su sesión/tráfico original;
-// si no llegaron (bloqueador de anuncios, SDK no cargó a tiempo), cae a un client_id sintético.
-async function sendPurchaseToGA4({ captureId, value, currency, doll, size, qty, clientId, sessionId }) {
+async function sendPurchaseToGA4({ captureId, value, currency, items, clientId, sessionId }) {
+  if (trackingOff()) { console.log('GA4 omitido: TRACKING_DISABLED'); return; }
   if (!process.env.GA4_MEASUREMENT_ID || !process.env.GA4_API_SECRET) return;
-  const finalClientId = clientId || ('server.' + captureId);
   const params = {
     transaction_id: captureId,
     currency,
     value: Number(value),
-    engagement_time_msec: 1, // Valor técnico de compatibilidad con GA4 (no es una medición real de tiempo de interacción; el servidor no tiene acceso a esa señal del navegador).
-    items: [{ item_name: 'T-Shirt intercambiable', item_variant: `${doll} / talla ${size}`, price: Number(value) / (Number(qty) || 1), quantity: Number(qty) || 1 }],
+    engagement_time_msec: 1, // valor técnico requerido por GA4; el servidor no mide tiempo real
+    items: items.map((it) => ({
+      item_id: it.sku,
+      item_name: it.name,
+      item_variant: [it.dollLabel, it.colorLabel, it.size ? `Talla ${it.size}` : ''].filter(Boolean).join(' / '),
+      price: Number(it.unitPrice),
+      quantity: Number(it.qty) || 1,
+    })),
   };
   if (sessionId) params.session_id = sessionId;
-  await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${process.env.GA4_MEASUREMENT_ID}&api_secret=${process.env.GA4_API_SECRET}`, {
+  const res = await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${process.env.GA4_MEASUREMENT_ID}&api_secret=${process.env.GA4_API_SECRET}`, {
     method: 'POST',
-    body: JSON.stringify({
-      client_id: finalClientId,
-      events: [{ name: 'purchase', params }],
-    }),
-  }).catch(() => {});
+    body: JSON.stringify({ client_id: clientId || ('server.' + captureId), events: [{ name: 'purchase', params }] }),
+  });
+  if (!res.ok) throw new Error('GA4 respondió ' + res.status);
 }
 
-// Recupera fbp/fbc guardados al crear la orden. Nunca debe bloquear el procesamiento del webhook:
-// timeout corto + catch silencioso — si falla, Purchase se envía igual sin esos campos.
-async function fetchAttribution(paypalOrderId) {
-  if (!process.env.SHEETS_WEBHOOK_URL || !paypalOrderId) return { fbp: null, fbc: null, userAgent: null };
-  try {
-    const url = `${process.env.SHEETS_WEBHOOK_URL}?action=get_attribution&paypalOrderId=${encodeURIComponent(paypalOrderId)}&secret=${encodeURIComponent(process.env.SHEETS_SECRET || '')}`;
-    const res = await Promise.race([
-      fetch(url),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000)),
-    ]);
-    const data = await res.json();
-    console.log('Attribution fetched from Sheet:', JSON.stringify(data));
-    return { fbp: data.fbp || null, fbc: data.fbc || null, userAgent: data.userAgent || null, clientIp: data.clientIp || null };
-  } catch (e) {
-    console.log('Attribution fetch failed:', e.message);
-    return { fbp: null, fbc: null, userAgent: null, clientIp: null };
-  }
-}
-
-// Envía Purchase a Meta Conversions API — solo tras verificar la firma del webhook y confirmar
-// PAYMENT.CAPTURE.COMPLETED. Nunca se dispara Purchase desde el navegador.
-async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc, userAgent, clientIp }) {
+// Meta Conversions API. event_id = Capture ID → Meta deduplica reintentos.
+async function sendPurchaseToMeta({ captureId, value, currency, items, attribution }) {
+  if (trackingOff()) { console.log('Meta CAPI omitido: TRACKING_DISABLED'); return; }
   if (!process.env.META_PIXEL_ID || !process.env.META_CAPI_ACCESS_TOKEN) {
-    console.log('Meta CAPI skipped: missing META_PIXEL_ID or META_CAPI_ACCESS_TOKEN env vars');
+    console.log('Meta CAPI omitido: faltan META_PIXEL_ID o META_CAPI_ACCESS_TOKEN');
     return;
   }
-  const apiVersion = process.env.META_GRAPH_API_VERSION || 'v25.0';
-  console.log('Meta CAPI target pixel/dataset ID:', process.env.META_PIXEL_ID, '| API version:', apiVersion);
+  const a = attribution || {};
   const userData = {};
-  if (fbp) userData.fbp = fbp;
-  if (fbc) userData.fbc = fbc;
-  if (userAgent) userData.client_user_agent = userAgent;
-  if (clientIp) userData.client_ip_address = clientIp;
-  console.log('Meta CAPI user_data being sent:', JSON.stringify(userData));
+  if (a.fbp) userData.fbp = a.fbp;
+  if (a.fbc) userData.fbc = a.fbc;
+  if (a.userAgent) userData.client_user_agent = a.userAgent;
+  if (a.clientIp) userData.client_ip_address = a.clientIp;
+  const apiVersion = process.env.META_GRAPH_API_VERSION || 'v25.0';
   const res = await fetch(`https://graph.facebook.com/${apiVersion}/${process.env.META_PIXEL_ID}/events?access_token=${process.env.META_CAPI_ACCESS_TOKEN}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -108,105 +90,98 @@ async function sendPurchaseToMeta({ captureId, value, currency, fbp, fbc, userAg
         event_id: captureId,
         action_source: 'website',
         user_data: userData,
-        custom_data: { value: Number(value), currency },
+        custom_data: {
+          value: Number(value),
+          currency,
+          content_type: 'product',
+          contents: items.map((it) => ({ id: it.sku, quantity: Number(it.qty) || 1, item_price: Number(it.unitPrice) })),
+          num_items: items.reduce((s, it) => s + (Number(it.qty) || 1), 0),
+        },
       }],
     }),
-  }).catch((e) => ({ ok: false, _fetchError: e.message }));
-  try {
-    const text = await res.text();
-    console.log('Meta CAPI response:', res.status, text);
-  } catch (e) { console.log('Meta CAPI error:', res._fetchError || e.message); }
+  });
+  const text = await res.text();
+  console.log('Meta CAPI response:', res.status, text.slice(0, 300));
+  if (!res.ok) throw new Error('Meta CAPI respondió ' + res.status);
+}
+
+// Pedidos creados con la versión anterior (custom_id con la configuración separada por "|").
+// Solo para órdenes que estaban abiertas durante el cambio de versión.
+async function handleLegacy(r, status) {
+  const [orderId, doll, size, included, extra, qty, clientId, sessionId] = (r.custom_id || '').split('|');
+  const extraList = extra && extra !== 'none' ? extra.split('-').filter(Boolean) : [];
+  if (process.env.SHEETS_WEBHOOK_URL) {
+    await fetch(process.env.SHEETS_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: process.env.SHEETS_SECRET, orderId, customerName: '', email: r.payer?.email_address || '',
+        paypalOrderId: r.supplementary_data?.related_ids?.order_id || '', paypalCaptureId: r.id, status,
+        doll, size, includedLooks: (included || '').split('-').join(', '), extraLooks: extraList.join(', '), qty,
+        basePrice: 43, extrasTotal: extraList.length * 10, totalPaid: r.amount?.value || '', currency: r.amount?.currency_code || 'USD',
+        notes: 'Registrado vía webhook (formato anterior)',
+      }),
+    });
+  }
+  if (status === 'COMPLETADO') {
+    const q = Number(qty) || 1;
+    const value = r.amount?.value || '0';
+    const items = [{ sku: 'tshirt-intercambiable', name: 'T-Shirt intercambiable', dollLabel: doll, size, unitPrice: (Number(value) / q).toFixed(2), qty: q }];
+    await sendPurchaseToGA4({ captureId: r.id, value, currency: r.amount?.currency_code || 'USD', items, clientId: clientId !== 'none' ? clientId : null, sessionId: sessionId !== 'none' ? sessionId : null });
+    await sendPurchaseToMeta({ captureId: r.id, value, currency: r.amount?.currency_code || 'USD', items, attribution: {} });
+  }
+  return json(200, { ok: true, legacy: true });
 }
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
+  let webhookEvent;
+  try { webhookEvent = JSON.parse(event.body || '{}'); } catch (e) { return json(400, { error: 'JSON inválido' }); }
+
   try {
-    const webhookEvent = JSON.parse(event.body || '{}');
-    const headers = event.headers || {};
-
-    // Verificar firma del webhook con PayPal antes de confiar en el evento.
-    const token = await getAccessToken();
-    const base = PAYPAL_API(process.env.PAYPAL_ENV || 'sandbox');
-    const verifyRes = await fetch(`${base}/v1/notifications/verify-webhook-signature`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        auth_algo: headers['paypal-auth-algo'],
-        cert_url: headers['paypal-cert-url'],
-        transmission_id: headers['paypal-transmission-id'],
-        transmission_sig: headers['paypal-transmission-sig'],
-        transmission_time: headers['paypal-transmission-time'],
-        webhook_id: process.env.PAYPAL_WEBHOOK_ID,
-        webhook_event: webhookEvent,
-      }),
-    });
-    const verifyData = await verifyRes.json();
-    if (verifyData.verification_status !== 'SUCCESS') {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Firma de webhook inválida' }) };
+    if (!(await verifySignature(event.headers || {}, webhookEvent))) {
+      return json(400, { error: 'Firma de webhook inválida' });
     }
+    const status = STATUS[webhookEvent.event_type];
+    console.log('Webhook recibido:', webhookEvent.event_type, webhookEvent.id || '');
+    if (!status) return json(200, { ok: true, ignored: webhookEvent.event_type });
 
-    const eventType = webhookEvent.event_type;
-    console.log('Webhook event_type received:', eventType);
-    const resource = webhookEvent.resource || {};
-    const statusMap = {
-      'PAYMENT.CAPTURE.COMPLETED': 'COMPLETADO',
-      'PAYMENT.CAPTURE.DENIED': 'DENEGADO',
-      'PAYMENT.CAPTURE.PENDING': 'PENDIENTE',
-    };
-    const status = statusMap[eventType];
-    if (!status) {
-      return { statusCode: 200, body: JSON.stringify({ ok: true, ignored: eventType }) };
-    }
+    const r = webhookEvent.resource || {};
+    const customId = r.custom_id || '';
+    if (customId.includes('|')) return await handleLegacy(r, status);
 
-    const config = decodeCustomId(resource.custom_id);
-    const extraCount = config.extraCount;
+    const amount = (r.amount && r.amount.value) || '0';
+    const currency = (r.amount && r.amount.currency_code) || 'USD';
+    const paypalOrderId = (r.supplementary_data && r.supplementary_data.related_ids && r.supplementary_data.related_ids.order_id) || '';
 
-    // El webhook es el registro oficial/definitivo del pedido — no depende de que el navegador siga abierto.
-    await logToSheet({
-      orderId: config.orderId,
-      customerName: '',
-      email: resource.payer?.email_address || '',
-      paypalOrderId: resource.supplementary_data?.related_ids?.order_id || '',
-      paypalCaptureId: resource.id,
-      status,
-      doll: config.doll,
-      size: config.size,
-      includedLooks: config.includedLooks,
-      extraLooks: config.extraLooks,
-      qty: config.qty,
-      basePrice: 43,
-      extrasTotal: extraCount * 10,
-      totalPaid: resource.amount?.value || '',
-      currency: resource.amount?.currency_code || 'USD',
-      notes: 'Registrado vía webhook',
+    const details = status === 'DENEGADO' ? { payerEmail: '', shipping: null } : await getOrderDetails(paypalOrderId);
+
+    // El Sheet reconcilia el estado con bloqueo (idempotente) y responde si este aviso ya se había procesado.
+    const rec = await sheetsCall('record_payment', {
+      paypalOrderId, orderId: customId, captureId: r.id, status, amount, currency,
+      payerEmail: (r.payer && r.payer.email_address) || details.payerEmail || '',
+      shipping: details.shipping,
+      webhookEventId: webhookEvent.id || '',
     });
 
-    if (eventType === 'PAYMENT.CAPTURE.COMPLETED') {
-      await sendPurchaseToGA4({
-        captureId: resource.id,
-        value: resource.amount?.value || 0,
-        currency: resource.amount?.currency_code || 'USD',
-        doll: config.doll,
-        size: config.size,
-        qty: config.qty,
-        clientId: config.clientId,
-        sessionId: config.sessionId,
-      });
-      const paypalOrderId = resource.supplementary_data?.related_ids?.order_id || '';
-      const { fbp, fbc, userAgent, clientIp } = await fetchAttribution(paypalOrderId);
-      await sendPurchaseToMeta({
-        captureId: resource.id,
-        value: resource.amount?.value || 0,
-        currency: resource.amount?.currency_code || 'USD',
-        fbp,
-        fbc,
-        userAgent,
-        clientIp,
-      });
+    if (rec.notFound) {
+      console.error('Pedido no encontrado en el Sheet:', paypalOrderId, customId);
+      return json(200, { ok: true, notFound: true });
     }
 
-    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    // Compra solo para PAGADO. "REVISAR" (monto o moneda distintos) no se envía a GA4 ni a Meta.
+    if (rec.eventsPending && rec.status === 'PAGADO') {
+      const o = rec.order;
+      const a = o.attribution || {};
+      await sendPurchaseToGA4({ captureId: r.id, value: amount, currency, items: o.items, clientId: a.gaClientId, sessionId: a.gaSessionId });
+      await sendPurchaseToMeta({ captureId: r.id, value: amount, currency, items: o.items, attribution: a });
+      await sheetsCall('mark_events_sent', { paypalOrderId: o.paypalOrderId });
+    }
+
+    return json(200, { ok: true, status: rec.status, duplicate: !!rec.duplicate, eventsSent: !!(rec.eventsPending && rec.status === 'PAGADO') });
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    // 500 → PayPal reintenta el aviso. Es seguro: el Sheet descarta duplicados y los eventos se deduplican por Capture ID.
+    console.error('Webhook error:', err.message);
+    return json(500, { error: err.message });
   }
 };

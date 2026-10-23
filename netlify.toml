@@ -6,3 +6,9 @@
   from = "/.image-slots.state.json"
   to = "/image-slots-state.json"
   status = 200
+
+# Página de diagnóstico del carrito (no indexar). En encantelia.com muestra "desactivada".
+[[headers]]
+  for = "/wear/prueba-carrito*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

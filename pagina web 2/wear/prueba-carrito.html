@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="robots" content="noindex, nofollow">
+  <title>Diagnóstico de carrito — Encantelia</title>
+  <style>body { margin: 0; background: #fdf6f1; font-family: 'Quicksand', system-ui, sans-serif; color: #4a2c3a; } a { color: #c2185b; } a:hover { color: #921249; }</style>
+</helmet>
+<div style="max-width:640px; margin:0 auto; padding:40px 20px; display:flex; flex-direction:column; gap:16px;">
+  <p style="margin:0; font-size:12px; font-weight:700; letter-spacing:1.5px; color:#b8863c;">DIAGNÓSTICO · NO ES UNA PÁGINA DE VENTA</p>
+  <h1 style="margin:0; font-size:24px; color:#c2185b;">Carrito compartido en {{ path }}</h1>
+  <sc-if value="{{ isProduction }}" hint-placeholder-val="{{ false }}">
+    <p style="margin:0; font-size:15px;">Esta página de diagnóstico está desactivada en producción.</p>
+  </sc-if>
+  <sc-if value="{{ isTest }}" hint-placeholder-val="{{ true }}">
+    <div style="background:#fff; border-radius:14px; padding:18px 20px; display:flex; flex-direction:column; gap:6px; font-size:14px; line-height:1.6;">
+      <div>Origen: <strong>{{ origin }}</strong></div>
+      <div>Clave: <strong>encantelia_cart_v1</strong></div>
+      <div>Resultado: <strong style="color:{{ resultColor }};">{{ resultText }}</strong></div>
+    </div>
+    <sc-for list="{{ items }}" as="it" hint-placeholder-count="2">
+      <div style="background:#fff; border-radius:12px; padding:12px 16px; font-size:14px; display:flex; justify-content:space-between; gap:12px;">
+        <span>{{ it.label }}</span><strong>{{ it.right }}</strong>
+      </div>
+    </sc-for>
+    <p style="margin:0; font-size:13px; color:#6b4a58;">Esta página lee el mismo carrito que la tienda. Si cambias el carrito en otra pestaña de la tienda, esta vista se actualiza sola.</p>
+    <a href="/" style="font-size:14px; font-weight:700;">Volver a la tienda</a>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { cart: null };
+  read = () => {
+    try {
+      const raw = window.localStorage.getItem('encantelia_cart_v1');
+      const data = raw ? JSON.parse(raw) : null;
+      this.setState({ cart: data && Array.isArray(data.items) ? data.items : [] });
+    } catch (e) { this.setState({ cart: [] }); }
+  };
+  onStorage = (e) => { if (e.key === 'encantelia_cart_v1') this.read(); };
+  componentDidMount() { this.read(); window.addEventListener('storage', this.onStorage); }
+  componentWillUnmount() { window.removeEventListener('storage', this.onStorage); }
+  renderVals() {
+    const isProduction = /^(www\.)?encantelia\.com$/.test(window.location.hostname);
+    const cart = this.state.cart || [];
+    return {
+      isProduction,
+      isTest: !isProduction,
+      path: window.location.pathname,
+      origin: window.location.origin,
+      resultText: cart.length ? cart.length + ' artículo(s) visibles desde esta ruta' : 'Carrito vacío (agrega algo en la tienda de este mismo dominio)',
+      resultColor: cart.length ? '#2e7d4f' : '#c2185b',
+      items: cart.map(c => ({
+        label: c.name + (c.priced ? ' — ' + [c.dollLabel, c.colorLabel, 'Talla ' + c.size, c.customName].filter(Boolean).join(' · ') : ' (cotización)'),
+        right: c.priced ? '×' + c.qty + '  $' + c.priceLabel : '—',
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

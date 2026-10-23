@@ -3,6 +3,10 @@
 <head>
 <!-- Meta Pixel Code -->
 <script>
+// Medición solo en el dominio real: las publicaciones de prueba (*.netlify.app, previsualizaciones) no envían datos a GA4 ni a Meta.
+window.ENCANTELIA_TRACKING = /^(www\.)?encantelia\.com$/.test(location.hostname);
+if (!window.ENCANTELIA_TRACKING) console.info('Encantelia: modo prueba en ' + location.hostname + ' — GA4 y Meta Pixel desactivados.');
+if (window.ENCANTELIA_TRACKING) {
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -13,18 +17,19 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '1085112527399313');
 fbq('track', 'PageView');
+}
 </script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
-/></noscript>
 <!-- End Meta Pixel Code -->
 
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-WVD43837VY"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-WVD43837VY');
+  if (window.ENCANTELIA_TRACKING) {
+    var gs = document.createElement('script'); gs.async = true; gs.src = 'https://www.googletagmanager.com/gtag/js?id=G-WVD43837VY';
+    document.head.appendChild(gs);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', 'G-WVD43837VY');
+  }
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -135,6 +140,9 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
           <div>Monto: <strong>${{ paidConfirmation.amount }} {{ paidConfirmation.currency }}</strong></div>
           <div>ID de captura PayPal: <strong>{{ paidConfirmation.captureId }}</strong></div>
         </div>
+        <sc-if value="{{ testMode }}" hint-placeholder-val="{{ false }}">
+          <a href="{{ verifyOrderUrl }}" target="_blank" style="display:block; font-size:13px; font-weight:700; color:#c2185b; margin:0 0 16px;">Verificar pedido en PayPal y Sheet (prueba)</a>
+        </sc-if>
         <button onClick="{{ closePaidConfirmation }}" style="background:#c2185b; color:#fff; border:none; padding:12px 28px; border-radius:24px; font-weight:700; font-size:14px; cursor:pointer;">Cerrar</button>
       </div>
     </div>
@@ -172,7 +180,12 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
                     <div>{{ item.extraNounLabel }}: <strong>+${{ item.extraAmountLabel }}</strong></div>
                   </sc-if>
                   <div>Precio unitario configurado: <strong>${{ item.unitPriceLabel }}</strong></div>
-                  <div>Cantidad: <strong>{{ item.qty }}</strong></div>
+                  <div style="display:flex; align-items:center; gap:10px; margin-top:4px;">
+                    <span>Cantidad:</span>
+                    <button onClick="{{ decCartQty }}" data-item-id="{{ item.id }}" aria-label="Restar una unidad" style="width:34px; height:34px; border-radius:50%; border:1px solid #e9b7cb; background:#fff; color:#c2185b; font-weight:700; font-size:16px; cursor:pointer;">−</button>
+                    <strong>{{ item.qty }}</strong>
+                    <button onClick="{{ incCartQty }}" data-item-id="{{ item.id }}" aria-label="Sumar una unidad" style="width:34px; height:34px; border-radius:50%; border:1px solid #e9b7cb; background:#fff; color:#c2185b; font-weight:700; font-size:16px; cursor:pointer;">+</button>
+                  </div>
                 </div>
                 <div style="font-size:15px; font-weight:700; color:#c2185b; margin-top:8px;">Subtotal: ${{ item.priceLabel }}</div>
               </sc-if>
@@ -200,7 +213,10 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
         </sc-if>
       </div>
       <div style="padding:22px 26px; border-top:1px solid #f2d9e2; background:#fdf6f1;">
-        <sc-if value="{{ onlyPriced }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ mixedCart }}" hint-placeholder-val="{{ false }}">
+          <p style="font-size:13px; color:#8a6b78; margin:0 0 12px; text-align:center;">PayPal cobra solo los productos con precio fijo (${{ pricedTotalLabel }}). Los productos de cotización se quedan en tu carrito y te confirmamos su precio por separado.</p>
+        </sc-if>
+        <sc-if value="{{ hasPriced }}" hint-placeholder-val="{{ false }}">
           <div ref="{{ paypalRefCallback }}" id="paypal-buttons-container"></div>
           <sc-if value="{{ paypalError }}" hint-placeholder-val="{{ false }}">
             <p style="color:#c2185b; font-size:12.5px; margin-top:10px; text-align:center;">{{ paypalError }}</p>
@@ -208,6 +224,7 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
         </sc-if>
         <sc-if value="{{ onlyQuote }}" hint-placeholder-val="{{ true }}">
           <a href="mailto:encantelia.creations@gmail.com?subject=Cotización Encantelia&body=Hola, quiero cotizar: {{ payItemName }}" style="display:block; text-align:center; background:#fff; border:2px solid #c2185b; color:#c2185b; padding:12px; border-radius:24px; font-weight:700; font-size:14px; margin-bottom:14px;">Solicitar cotización por correo</a>
+          <sc-if value="{{ quotePayEnabled }}" hint-placeholder-val="{{ false }}">
           <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" style="display:flex; flex-direction:column; gap:10px;">
             <input type="hidden" name="cmd" value="_xclick">
             <input type="hidden" name="business" value="encantelia.creations@gmail.com">
@@ -218,12 +235,17 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
             <input type="number" name="amount" step="0.01" min="1" required="" value="{{ payAmount }}" onChange="{{ setPayAmount }}" placeholder="ej. 25.00" style="padding:12px 14px; border:1px solid #e9b7cb; border-radius:12px; font-size:15px; font-family:'Quicksand',sans-serif;">
             <button type="submit" style="background:#0070ba; color:#fff; border:none; padding:13px; border-radius:24px; font-weight:700; font-size:15px; cursor:pointer;" style-hover="background:#005ea6;">Pagar con PayPal</button>
           </form>
-        </sc-if>
-        <sc-if value="{{ mixedCart }}" hint-placeholder-val="{{ false }}">
-          <p style="font-size:13px; color:#8a6b78; margin:0 0 12px; text-align:center;">Este carrito mezcla precio fijo y cotización \u2014 propuesta pendiente de tu aprobación.</p>
+          </sc-if>
+          <sc-if value="{{ testMode }}" hint-placeholder-val="{{ false }}">
+            <p style="font-size:13px; color:#6b4a58; margin:0; text-align:center;">Modo prueba: el pago de cotizaciones con PayPal está desactivado porque usa la cuenta real.</p>
+          </sc-if>
         </sc-if>
       </div>
     </div>
+  </sc-if>
+
+  <sc-if value="{{ testMode }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; left:12px; bottom:12px; z-index:90; background:#1c1c1c; color:#fff; font-size:12px; font-weight:700; padding:8px 12px; border-radius:8px; letter-spacing:0.5px;">MODO PRUEBA · PayPal sandbox · sin GA4/Meta</div>
   </sc-if>
 
   <!-- HERO -->
@@ -652,11 +674,58 @@ src="https://www.facebook.com/tr?id=3146416538881167&ev=PageView&noscript=1"
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { menuOpen: false, cartOpen: false, cart: [], payAmount: '', tsStep: 1, tsDoll: null, tsColor: null, tsSize: null, tsIncluded: [], tsExtra: [], tsName: '', tsQty: 1, paidConfirmation: null, paypalError: '' };
+  state = { menuOpen: false, cartOpen: false, cart: this.loadCart(), payAmount: '', tsStep: 1, tsDoll: null, tsColor: null, tsSize: null, tsIncluded: [], tsExtra: [], tsName: '', tsQty: 1, paidConfirmation: null, paypalError: '' };
   videoRef = React.createRef();
   _paypalRendered = false;
 
+  // Carrito persistente (compartido entre páginas/pestañas del mismo dominio, p. ej. /wear).
+  loadCart() {
+    try {
+      const raw = window.localStorage.getItem('encantelia_cart_v1');
+      if (!raw) return [];
+      const data = JSON.parse(raw);
+      if (!data || data.v !== 1 || !Array.isArray(data.items)) return [];
+      return data.items.filter(c => c && typeof c.id === 'string' && typeof c.name === 'string' && (!c.priced || (c.config && c.config.productId && Number.isInteger(c.qty))));
+    } catch (e) { return []; }
+  }
+  saveCart(cart) {
+    try { window.localStorage.setItem('encantelia_cart_v1', JSON.stringify({ v: 1, savedAt: Date.now(), items: cart })); } catch (e) {}
+  }
+  onStorage = (e) => {
+    if (e.key !== 'encantelia_cart_v1') return;
+    const cart = this.loadCart();
+    this._savedCart = cart;
+    this.setState({ cart });
+  };
+  // Solo en publicaciones de prueba (fuera de encantelia.com):
+  //   ?prueba=149   → carrito con las 2 camisetas del paso 1 (43×2 + 63×1)
+  //   ?prueba=mixto → 1 camiseta + 1 vela de cotización
+  //   &simular=rechazo → el primer cobro se rechaza con el simulador oficial de PayPal sandbox
+  applyTestPreset() {
+    let params;
+    try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+    if (params.get('simular') === 'rechazo') this._simulate = 'INSTRUMENT_DECLINED';
+    const A = { productId: 'tshirt-intercambiable', dollId: 'doll1', colorId: 'rosa', size: '5/6', includedLookIds: ['look1', 'look2', 'look3'], extraLookIds: [], customName: 'Olivia' };
+    const B = { productId: 'tshirt-intercambiable', dollId: 'doll3', colorId: 'negro', size: '10/12', includedLookIds: ['look4', 'look5', 'look6'], extraLookIds: ['look7', 'look8'], customName: '' };
+    const presets = {
+      '149': () => [this.buildTshirtItem(A, 2, 'prueba-a'), this.buildTshirtItem(B, 1, 'prueba-b')],
+      'mixto': () => [this.buildTshirtItem(A, 1, 'prueba-a'), { id: 'velas', name: 'Vela Temática Personalizada' }],
+    };
+    const build = presets[params.get('prueba')];
+    if (build) this.setState({ cart: build(), cartOpen: true });
+    if (params.has('prueba') || params.has('simular')) {
+      try { window.history.replaceState(null, '', window.location.pathname); } catch (e) {}
+    }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('storage', this.onStorage);
+  }
+
   componentDidMount() {
+    this._savedCart = this.state.cart;
+    window.addEventListener('storage', this.onStorage);
+    if (window.ENCANTELIA_TRACKING === false) this.applyTestPreset();
     const v = this.videoRef.current;
     if (v) {
       v.muted = true;
@@ -711,53 +780,80 @@ class Component extends DCLogic {
       setTimeout(() => this.renderPaypalButtons(el, retries - 1), 300);
       return;
     }
-    const firstItem = this.state.cart.find(c => c.priced);
-    if (!firstItem) return;
     el.dataset.rendered = '1';
     window.paypal.Buttons({
-      createOrder: () => this.getGAIdentifiers().then(({ clientId, sessionId }) => {
-        const { fbp, fbc, userAgent } = this.getMetaCookies();
-        return fetch('/.netlify/functions/paypal-create-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            doll: firstItem.dollLabel,
-            size: firstItem.size,
-            includedLooks: firstItem.includedLabels.split(', '),
-            extraLooks: firstItem.extraLabels ? firstItem.extraLabels.split(', ') : [],
-            qty: firstItem.qty,
-            gaClientId: clientId,
-            gaSessionId: sessionId,
-            fbp,
-            fbc,
-            userAgent,
-          }),
-        });
-      }).then(r => r.json()).then(d => {
-        if (!d.id) throw new Error(d.error || 'No se pudo crear la orden');
-        return d.id;
-      }).catch(err => { this.setState({ paypalError: err.message }); throw err; }),
-      onApprove: (data) => fetch('/.netlify/functions/paypal-capture-order', {
+      // Se lee el carrito en el momento del clic: cualquier cambio previo (cantidad, quitar, agregar) se cobra tal cual.
+      createOrder: () => {
+        const lines = this.getCheckoutLines();
+        if (!lines.length) {
+          this.setState({ paypalError: 'Tu carrito no tiene productos con precio fijo.' });
+          return Promise.reject(new Error('empty'));
+        }
+        const items = lines.map(c => ({ ...c.config, qty: c.qty }));
+        const lineIds = lines.map(c => c.id);
+        this.setState({ paypalError: '' });
+        return this.getGAIdentifiers().then(({ clientId, sessionId }) => {
+          const { fbp, fbc, userAgent } = this.getMetaCookies();
+          return fetch('/.netlify/functions/paypal-create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items, gaClientId: clientId, gaSessionId: sessionId, fbp, fbc, userAgent }),
+          });
+        }).then(r => r.json()).then(d => {
+          if (!d.id) throw new Error(d.error || 'No se pudo crear la orden');
+          this._checkout = { paypalOrderId: d.id, lineIds };
+          return d.id;
+        }).catch(err => { this.setState({ paypalError: err.message }); throw err; });
+      },
+      onApprove: (data, actions) => fetch('/.netlify/functions/paypal-capture-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: data.orderID }),
-      }).then(r => r.json()).then(res => {
-        if (!res.paid) { this.setState({ paypalError: 'El pago no se completó (estado: ' + res.status + ').' }); return; }
-        this.setState({ paidConfirmation: res, cart: [], cartOpen: false, payAmount: '' });
-      }),
-      onCancel: () => {},
-      onError: (err) => this.setState({ paypalError: 'Error de PayPal: ' + err }),
+        body: JSON.stringify({ orderId: data.orderID, simular: this._simulate || undefined }),
+      }).then(r => { this._simulate = null; return r.json(); }).then(res => {
+        if (res.retry && actions && actions.restart) {
+          this.setState({ paypalError: 'Tu método de pago fue rechazado. Elige otro en PayPal.' });
+          return actions.restart();
+        }
+        const ck = this._checkout;
+        const paidIds = ck && ck.paypalOrderId === data.orderID ? ck.lineIds : [];
+        if (res.paid || res.pending || res.alreadyCaptured) {
+          this._checkout = null;
+          // Solo salen del carrito las líneas cobradas; las de cotización se conservan.
+          this.setState(s => ({
+            cart: s.cart.filter(c => !paidIds.includes(c.id)),
+            paidConfirmation: res.paid ? { ...res, paypalOrderId: data.orderID } : null,
+            cartOpen: res.paid ? false : s.cartOpen,
+            payAmount: '',
+            paypalError: res.paid ? '' : (res.pending ? 'Tu pago quedó pendiente de confirmación en PayPal. Te avisaremos por correo cuando se complete.' : res.error),
+          }));
+          return;
+        }
+        this.setState({ paypalError: res.error || ('El pago no se completó (estado: ' + (res.status || 'desconocido') + '). No se realizó ningún cargo.') });
+      }).catch(() => this.setState({ paypalError: 'No pudimos confirmar el pago. Si PayPal te muestra un cargo, escríbenos antes de intentar de nuevo.' })),
+      onCancel: () => { this._checkout = null; this.setState({ paypalError: 'Pago cancelado. Tu carrito sigue igual.' }); },
+      onError: (err) => {
+        if (err && err.message === 'empty') return;
+        this.setState(s => ({ paypalError: s.paypalError || 'Error de PayPal. No se realizó ningún cargo. Intenta de nuevo.' }));
+      },
     }).render(el);
   };
 
+  getCheckoutLines() {
+    return this.state.cart.filter(c => c.priced && c.config);
+  }
+
   componentDidUpdate() {
     const s = this.state;
+    if (s.cart !== this._savedCart) {
+      this._savedCart = s.cart;
+      this.saveCart(s.cart);
+      if (window.ENCANTELIA_TRACKING === false) console.info('[prueba] Carrito guardado:', s.cart.map(c => c.name + (c.priced ? ' ×' + c.qty + ' $' + c.priceLabel : ' (cotización)')).join(' | ') || 'vacío');
+    }
     const anyModalOpen = s.cartOpen || s.menuOpen || !!s.paidConfirmation;
     document.body.style.overflow = anyModalOpen ? 'hidden' : '';
 
     const hasPriced = s.cart.some(c => c.priced);
-    const hasQuote = s.cart.some(c => !c.priced);
-    if (s.cartOpen && hasPriced && !hasQuote && !this._checkoutFired) {
+    if (s.cartOpen && hasPriced && !this._checkoutFired) {
       this._checkoutFired = true;
       if (window.gtag) {
         const pricedTotal = s.cart.filter(c => c.priced).reduce((sum, c) => sum + c.price, 0);
@@ -810,7 +906,7 @@ class Component extends DCLogic {
     this.setState(s => s.tsExtra.includes(id) ? { tsExtra: s.tsExtra.filter(x => x !== id) } : { tsExtra: [...s.tsExtra, id] });
   };
   decQty = () => this.setState(s => ({ tsQty: Math.max(1, s.tsQty - 1) }));
-  incQty = () => this.setState(s => ({ tsQty: s.tsQty + 1 }));
+  incQty = () => this.setState(s => ({ tsQty: Math.min(20, s.tsQty + 1) }));
   goNext = () => this.setState(s => {
     if (s.tsStep === 1 && !s.tsDoll) return {};
     if (s.tsStep === 2 && !s.tsColor) return {};
@@ -820,32 +916,43 @@ class Component extends DCLogic {
   });
   goBack = () => this.setState(s => ({ tsStep: Math.max(1, s.tsStep - 1) }));
 
-  addConfiguredToCart = () => {
-    const s = this.state;
-    const lookLabel = (id) => 'L' + String(this.looksData.findIndex(l => l.id === id) + 1).padStart(2, '0');
-    const dollLabel = (this.dollsData.find(d => d.id === s.tsDoll) || {}).label || '';
-    const colorLabel = (this.colorsData.find(c => c.id === s.tsColor) || {}).label || '';
-    const includedLabels = s.tsIncluded.map(lookLabel).join(', ');
-    const extraLabels = s.tsExtra.map(lookLabel).join(', ');
+  // Precio mostrado en el navegador; el servidor lo recalcula y valida antes de cobrar.
+  buildTshirtItem(config, qty, id) {
+    const lookLabel = (lid) => 'L' + String(this.looksData.findIndex(l => l.id === lid) + 1).padStart(2, '0');
     const basePrice = 43;
-    const extraCount = s.tsExtra.length;
+    const extraCount = config.extraLookIds.length;
     const extraAmount = extraCount * 10;
-    const extraNounLabel = extraCount + (extraCount === 1 ? ' look adicional' : ' looks adicionales');
     const unitPrice = basePrice + extraAmount;
-    const total = unitPrice * s.tsQty;
-    const item = {
-      id: 'tshirt-' + Date.now(),
-      name: 'T-Shirt intercambiable',
-      priced: true,
-      dollLabel, colorLabel, size: s.tsSize, includedLabels, extraLabels,
-      customName: s.tsName || '',
+    const total = unitPrice * qty;
+    return {
+      id, name: 'T-Shirt intercambiable', priced: true, config,
+      dollLabel: (this.dollsData.find(d => d.id === config.dollId) || {}).label || '',
+      colorLabel: (this.colorsData.find(c => c.id === config.colorId) || {}).label || '',
+      size: config.size,
+      includedLabels: config.includedLookIds.map(lookLabel).join(', '),
+      extraLabels: config.extraLookIds.map(lookLabel).join(', '),
+      customName: config.customName,
       basePriceLabel: basePrice.toFixed(2),
-      extraCount, extraAmountLabel: extraAmount.toFixed(2), extraNounLabel,
-      qty: s.tsQty,
-      unitPrice, unitPriceLabel: unitPrice.toFixed(2),
+      extraCount, extraAmountLabel: extraAmount.toFixed(2),
+      extraNounLabel: extraCount + (extraCount === 1 ? ' look adicional' : ' looks adicionales'),
+      qty, unitPrice, unitPriceLabel: unitPrice.toFixed(2),
       price: total, priceLabel: total.toFixed(2),
     };
+  }
+
+  addConfiguredToCart = () => {
+    const s = this.state;
+    const config = {
+      productId: 'tshirt-intercambiable',
+      dollId: s.tsDoll, colorId: s.tsColor, size: s.tsSize,
+      includedLookIds: s.tsIncluded.slice(), extraLookIds: s.tsExtra.slice(),
+      customName: (s.tsName || '').trim(),
+    };
+    const item = this.buildTshirtItem(config, s.tsQty, 'tshirt-' + Date.now());
+    const unitPrice = item.unitPrice;
+    const total = item.price;
     this.setState(prev => ({
+      paypalError: '',
       cart: [...prev.cart, item],
       cartOpen: true,
       tsStep: 1, tsDoll: null, tsColor: null, tsSize: null, tsIncluded: [], tsExtra: [], tsName: '', tsQty: 1,
@@ -854,7 +961,7 @@ class Component extends DCLogic {
       window.gtag('event', 'add_to_cart', {
         currency: 'USD',
         value: total,
-        items: [{ item_name: 'T-Shirt intercambiable', price: unitPrice, quantity: s.tsQty }],
+        items: [{ item_id: 'tshirt-intercambiable', item_name: 'T-Shirt intercambiable', price: unitPrice, quantity: s.tsQty }],
       });
     }
     if (window.fbq) {
@@ -876,8 +983,18 @@ class Component extends DCLogic {
 
   removeFromCart = (e) => {
     const id = e.currentTarget.dataset.itemId;
-    this.setState(s => ({ cart: s.cart.filter(c => c.id !== id) }));
+    this.setState(s => ({ paypalError: '', cart: s.cart.filter(c => c.id !== id) }));
   };
+  changeCartQty = (id, delta) => this.setState(s => ({
+    paypalError: '',
+    cart: s.cart.map(c => {
+      if (c.id !== id || !c.priced || !c.config) return c;
+      const qty = Math.min(20, Math.max(1, c.qty + delta));
+      return qty === c.qty ? c : this.buildTshirtItem(c.config, qty, c.id);
+    }),
+  }));
+  incCartQty = (e) => this.changeCartQty(e.currentTarget.dataset.itemId, 1);
+  decCartQty = (e) => this.changeCartQty(e.currentTarget.dataset.itemId, -1);
 
   renderVals() {
     const s = this.state;
@@ -914,6 +1031,9 @@ class Component extends DCLogic {
       hasCartItems: cart.length > 0,
       addToCart: this.addToCart,
       removeFromCart: this.removeFromCart,
+      incCartQty: this.incCartQty,
+      decCartQty: this.decCartQty,
+      hasPriced,
       videoRef: this.videoRef,
       pricedTotal,
       pricedTotalLabel: pricedTotal.toFixed(2),
@@ -953,6 +1073,10 @@ class Component extends DCLogic {
       summaryDollPlaceholder: summaryDoll.placeholder || '',
       summaryLookThumbs,
       paidConfirmation: s.paidConfirmation,
+      testMode: window.ENCANTELIA_TRACKING === false,
+      // El formulario de cotización cobra en PayPal Live: nunca se muestra en publicaciones de prueba.
+      quotePayEnabled: window.ENCANTELIA_TRACKING !== false,
+      verifyOrderUrl: s.paidConfirmation ? '/.netlify/functions/prueba-verificar-pedido?paypalOrderId=' + encodeURIComponent(s.paidConfirmation.paypalOrderId || '') : '',
       closePaidConfirmation: () => this.setState({ paidConfirmation: null }),
       paypalError: s.paypalError,
       paypalRefCallback: (el) => this.renderPaypalButtons(el),
