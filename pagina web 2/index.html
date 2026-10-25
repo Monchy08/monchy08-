@@ -95,6 +95,7 @@ fbq('track', 'PageView');
       <span style="font-family: 'Playfair Display', serif; font-weight: 700; font-size: 22px; color: #c2185b; letter-spacing: 0.3px;">Encantelia <span style="color:#b8863c; font-size:13px; letter-spacing:3px; font-weight:600; display:block; font-family:'Quicksand',sans-serif; margin-top:-2px;">CREATIONS</span></span>
     </a>
     <nav style="display: flex; align-items: center; gap: 28px;" class="desktop-nav">
+      <a href="/wear/" style="color:#71521e;font-weight:700;font-size:15px;">Wear</a>
       <a href="#nosotros" style="color:#4a2c3a; font-weight:600; font-size:15px;">Nosotros</a>
       <a href="#productos" style="color:#4a2c3a; font-weight:600; font-size:15px;">Productos</a>
       <a href="#galeria" style="color:#4a2c3a; font-weight:600; font-size:15px;">Galería</a>
@@ -121,6 +122,7 @@ fbq('track', 'PageView');
   <sc-if value="{{ menuOpen }}">
     <div style="position: fixed; inset: 0; z-index: 60; background: #fdf6f1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;">
       <button onClick="{{ toggleMenu }}" style="position:absolute; top:20px; right:24px; background:none; border:none; font-size:30px; color:#c2185b;">✕</button>
+      <a href="/wear/" style="font-family:serif;font-size:24px;color:#71521e;font-weight:700;">Wear</a>
       <a href="#nosotros" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Nosotros</a>
       <a href="#productos" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Productos</a>
       <a href="#galeria" onClick="{{ toggleMenu }}" style="font-family:'Playfair Display',serif; font-size:24px; color:#4a2c3a; font-weight:600;">Galería</a>
@@ -420,6 +422,11 @@ fbq('track', 'PageView');
   </section>
 
   <!-- SOBRE NOSOTROS -->
+  <section aria-label="Encantelia Original Wear" style="background:#0e1413;color:#f5ecdd;padding:56px 5vw;display:flex;flex-wrap:wrap;align-items:center;gap:32px;">
+    <div style="flex:1;min-width:240px;max-width:600px;"><p style="color:#d8b36e;letter-spacing:3px;font-size:12px;">ENCANTELIA ORIGINAL WEAR</p><h2 style="font-family:serif;font-size:clamp(30px,4vw,48px);margin:16px 0;">De la isla. Para el mundo.</h2><p style="line-height:1.8;">Nuestra división de ropa urbana. Diseño dominicano, identidad caribeña y actitud propia.</p><a href="/wear/" style="display:inline-block;background:#e8d5b1;color:#141b18;padding:14px 24px;font-weight:700;margin-top:12px;">Explorar la colección ↗</a></div>
+    <a href="/wear/" style="flex:1;min-width:240px;max-width:440px;"><img src="/wear/assets/launch-nights.webp" alt="809 Nights, primera colección Encantelia Wear" loading="lazy" style="display:block;width:100%;max-height:440px;object-fit:cover;object-position:center;"></a>
+  </section>
+
   <section id="nosotros" class="sec-pad" style="padding: 100px 5vw; background:#fff; scroll-margin-top:80px;">
     <div class="about-grid" style="display:grid; grid-template-columns: 0.8fr 1.2fr; gap:64px; align-items:center; max-width:1200px; margin:0 auto;">
       <div style="display:flex; justify-content:center;">
@@ -674,7 +681,7 @@ fbq('track', 'PageView');
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { menuOpen: false, cartOpen: false, cart: this.loadCart(), payAmount: '', tsStep: 1, tsDoll: null, tsColor: null, tsSize: null, tsIncluded: [], tsExtra: [], tsName: '', tsQty: 1, paidConfirmation: null, paypalError: '' };
+  state = { menuOpen: false, cartOpen: new URLSearchParams(window.location.search).get('carrito') === '1', cart: this.loadCart(), payAmount: '', tsStep: 1, tsDoll: null, tsColor: null, tsSize: null, tsIncluded: [], tsExtra: [], tsName: '', tsQty: 1, paidConfirmation: null, paypalError: '' };
   videoRef = React.createRef();
   _paypalRendered = false;
 
@@ -1093,3 +1100,4 @@ class Component extends DCLogic {
 </script>
 </body>
 </html>
+
