@@ -12,3 +12,15 @@
   for = "/wear/prueba-carrito*"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
+
+
+# Primera integración visual de Wear, solo para revisión en pruebas-v2.
+[[redirects]]
+  from = "/wear"
+  to = "/wear/"
+  status = 301
+
+[[headers]]
+  for = "/wear/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
