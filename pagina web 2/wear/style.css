@@ -28,3 +28,14 @@
 .wear-cart{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-size:12px;color:inherit;text-decoration:none}.wear-cart #wearCartCount{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 4px;border:1px solid #ad8b51;border-radius:50%;font-size:11px}a:focus-visible,button:focus-visible{outline:2px solid #d8b36e;outline-offset:4px}@media(max-width:600px){.nav-right{gap:10px!important}.wear-cart{font-size:11px}.parent-link{display:none!important}}
 
 .launch-description{font-size:14px;line-height:1.6;color:#bdc6be;margin:0 0 20px}.campaign-info{gap:14px;flex-wrap:wrap}.hero>img{object-position:65% 35%}
+
+/* Product stories beside the enlarged Caribbean Collection mockups. */
+#artDialog.has-details{width:min(1180px,94vw);max-width:94vw;padding:0;background:#18241f;color:#f3eddf}
+.art-detail-layout{display:block}.art-detail-layout>img{display:block;max-width:75vw;max-height:77svh;object-fit:contain}
+.has-details .art-detail-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.has-details .art-detail-layout>img{width:100%;height:100%;max-width:100%;max-height:86svh;object-fit:contain;background:#101914}
+.art-detail-copy{padding:60px 42px 35px;align-self:center}.art-detail-copy[hidden]{display:none}.art-detail-copy .eyebrow{color:#d1b475;font-size:10px;letter-spacing:2px}
+.art-detail-copy h2{font-size:clamp(32px,3.6vw,52px);line-height:1.05;margin:18px 0 22px}.art-inspiration{font-size:15px;line-height:1.8;color:#dedfd5}
+.art-quality{border-top:1px solid #bba16b55;margin-top:26px;padding-top:25px}.art-quality h3{font-family:Georgia,serif;font-weight:400;color:#dfc28a;font-size:25px;line-height:1.3;margin:0 0 16px}.art-quality p{font-size:13px;line-height:1.9;color:#d0d4ca}
+.art-specs{display:grid;gap:14px;margin:25px 0}.art-specs>div{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #ffffff18;padding-bottom:10px}.art-specs dt{font-size:9px;letter-spacing:1.4px;color:#b2bcae}.art-specs dd{margin:0;font-size:12px;text-align:right}.art-status{color:#dfc28a;font-size:12px;letter-spacing:2px;text-transform:uppercase}.art-disclaimer{font-size:11px;line-height:1.7;color:#adb8ac;max-width:340px}
+@media(max-width:760px){#artDialog.has-details{max-height:92svh;width:94vw}.has-details .art-detail-layout{grid-template-columns:1fr}.has-details .art-detail-layout>img{max-height:58svh;height:auto}.art-detail-copy{padding:32px 25px}.art-detail-copy h2{font-size:36px}.art-inspiration{font-size:14px}}
