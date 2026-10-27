@@ -34,11 +34,13 @@ exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return reply(405,{error:'Usa el formulario de prueba.'});
   const h = Object.fromEntries(Object.entries(event.headers || {}).map(([k,v])=>[k.toLowerCase(),v]));
   if (h.origin !== ORIGIN || !(h['content-type'] || '').toLowerCase().startsWith('application/json')) return reply(403,{error:'Abre el formulario en la rama de pruebas.'});
-  const token = env.SHIPPO_API_TOKEN || '';
-  if (!/^shippo_test_[A-Za-z0-9]+$/.test(token)) return reply(503,{error:'Configura una clave Test válida de Shippo en esta rama y vuelve a desplegarla.'});
   if (event.isBase64Encoded || !event.body || Buffer.byteLength(event.body,'utf8') > 8192) return reply(400,{error:'Solicitud inválida o demasiado grande.'});
-  let body, from, to;
-  try {body=JSON.parse(event.body); from=address(body.from,true); to=address(body.to,false);} catch(e) {return reply(400,{error:e instanceof SyntaxError ? 'Solicitud JSON inválida.' : e.message});}
+  let body, from, to, mode;
+  try {body=JSON.parse(event.body); if (!body || typeof body !== 'object' || Array.isArray(body)) throw Error('Solicitud inválida.'); mode=body.mode === undefined ? 'test' : body.mode; if (!['test','live'].includes(mode)) throw Error('Selecciona Test o tarifas reales.'); from=address(body.from,true); to=address(body.to,false);} catch(e) {return reply(400,{error:e instanceof SyntaxError ? 'Solicitud JSON inválida.' : e.message});}
+  const live = mode === 'live';
+  const token = (live ? env.SHIPPO_LIVE_API_TOKEN : env.SHIPPO_API_TOKEN) || '';
+  const tokenPattern = live ? /^shippo_live_[A-Za-z0-9]+$/ : /^shippo_test_[A-Za-z0-9]+$/;
+  if (!tokenPattern.test(token)) return reply(503,{error:live ? 'Configura una clave Live válida de Shippo en esta rama y vuelve a desplegarla.' : 'Configura una clave Test válida de Shippo en esta rama y vuelve a desplegarla.'});
   const controller = new AbortController();
   const timer = setTimeout(()=>controller.abort(),8000);
   try {
@@ -47,13 +49,14 @@ exports.handler = async (event) => {
       headers:{Authorization:'ShippoToken '+token,'Content-Type':'application/json'},
       body:JSON.stringify({address_from:from,address_to:to,parcels:[PARCEL],async:false})
     });
-    if (!res.ok) return reply(502,{error:res.status===401||res.status===403 ? 'Shippo no aceptó la clave o los permisos. Revisa la cuenta y la clave Test.' : res.status===400||res.status===422 ? 'Shippo no aceptó los datos. Revisa las direcciones y sus códigos postales.' : 'Shippo no pudo cotizar ahora. Inténtalo de nuevo más tarde.'});
+    if (!res.ok) return reply(502,{error:res.status===401||res.status===403 ? 'Shippo no aceptó la clave o los permisos. Revisa la cuenta y la clave del modo seleccionado.' : res.status===400||res.status===422 ? 'Shippo no aceptó los datos. Revisa las direcciones y sus códigos postales.' : 'Shippo no pudo cotizar ahora. Inténtalo de nuevo más tarde.'});
     const data = await res.json();
-    if (data.test !== true) return reply(502,{error:'Shippo no confirmó modo Test. No se mostrarán tarifas.'});
+    if (data.test !== !live) return reply(502,{error:'Shippo no confirmó el modo solicitado. No se mostrarán tarifas.'});
     const rates = (Array.isArray(data.rates)?data.rates:[]).filter(r=>/^(USPS|UPS|FedEx)$/i.test(r.provider || '') && r.currency==='USD' && /^\d+(\.\d{1,2})?$/.test(String(r.amount)) && Number(r.amount)>0).map(r=>({
       carrier:r.provider,service:String(r.servicelevel?.name || 'Servicio sin nombre').slice(0,100),amount:Number(r.amount).toFixed(2),currency:'USD',estimatedDays:Number.isInteger(r.estimated_days)&&r.estimated_days>0?r.estimated_days:null
     })).sort((a,b)=>Number(a.amount)-Number(b.amount));
-    return reply(200,{mode:'test',parcel:PARCEL,rates,warning:rates.length?'Tarifas Test: no son precios definitivos ni plazos garantizados.':'Shippo no devolvió tarifas utilizables de USPS, UPS o FedEx. Revisa las direcciones y las cuentas habilitadas. No se ha comprado ninguna etiqueta.'});
+    return reply(200,{mode,parcel:PARCEL,rates,warning:rates.length?(live ? 'Tarifas reales consultadas en Shippo para este paquete. Pueden cambiar; los plazos no están garantizados. No se ha comprado ninguna etiqueta.' : 'Tarifas Test: no son precios definitivos ni plazos garantizados.'):'Shippo no devolvió tarifas utilizables de USPS, UPS o FedEx. Revisa las direcciones y las cuentas habilitadas. No se ha comprado ninguna etiqueta.'});
   } catch(e) {return reply(e.name==='AbortError'?504:502,{error:e.name==='AbortError'?'Shippo tardó demasiado. Vuelve a intentarlo; no se compró ninguna etiqueta.':'No se pudo consultar Shippo. Inténtalo de nuevo.'});}
   finally {clearTimeout(timer);}
 };
+
