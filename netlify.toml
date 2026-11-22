@@ -1,5 +1,5 @@
 [build]
-  command = '''node -e 'const fs = require("node:fs"); const path = require("node:path"); const { files } = require("./site-release-2026-11-22.json"); for (const [name, encoded] of Object.entries(files)) { if (path.isAbsolute(name) || name.split("/").includes("..") || !/^(pagina web 2|netlify)\//.test(name)) throw new Error("Invalid release path: " + name); fs.mkdirSync(path.dirname(name), { recursive: true }); fs.writeFileSync(name, Buffer.from(encoded, "base64")); }''''
+  command = '''node -e 'const fs = require("node:fs"); const path = require("node:path"); const { files } = require("./site-release-2026-11-22.json"); for (const [name, encoded] of Object.entries(files)) { if (path.isAbsolute(name) || name.split("/").includes("..") || !/^(pagina web 2|netlify)\//.test(name)) throw new Error("Invalid release path: " + name); fs.mkdirSync(path.dirname(name), { recursive: true }); const bytes = Buffer.from(encoded, "base64"); const isHomepage = ["pagina web 2/index.html", "pagina web 2/Encantelia.dc.html"].includes(name); fs.writeFileSync(name, isHomepage ? bytes.toString("utf8").replace(/https:\/\/encantelia-original-wear\.monchy08\.chatgpt\.site\//g, "https://wear.encantelia.com/") : bytes); }''''
   functions = "netlify/functions"
   publish = "pagina web 2"
 
